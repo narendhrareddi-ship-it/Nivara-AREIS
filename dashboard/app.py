@@ -9,14 +9,21 @@ import plotly.express as px
 import random
 
 from theme import CSS, LOGO_SVG, CHART_COLORS, RED, RED_DARK, NAVY, GOLD, SLATE, plotly_layout, stat_card, market_chip, post_card
-from config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, ORCH_URL, VEO_URL, OLLAMA_URL, DEFAULT_REGION
+from config import (
+    DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD,
+    ORCH_URL, VEO_URL, OLLAMA_URL, DEFAULT_REGION,
+    connection_config, password_is_placeholder,
+)
 from safe_data import val as _val, text as _text, fmt_dt as _fmt_dt, trunc as _trunc
 
-APP_BUILD = "2026-06-13e"
+APP_BUILD = "2026-06-13f"
 
 st.set_page_config(page_title="NIVARA — AREIS", page_icon="🏢", layout="wide", initial_sidebar_state="collapsed")
 
+_last_db_error: str | None = None
+
 def db():
+    global _last_db_error
     try:
         return psycopg2.connect(
             host=DB_HOST,
@@ -28,7 +35,8 @@ def db():
             sslmode="require",
             connect_timeout=15,
         )
-    except Exception:
+    except Exception as exc:
+        _last_db_error = str(exc)
         return None
 
 def q(sql, p=None, one=False):
@@ -130,18 +138,43 @@ def simulate_activity():
 st.markdown(CSS, unsafe_allow_html=True)
 
 _db_ok = db() is not None
-if _db_ok:
+if not _db_ok:
+    cfg = connection_config()
+    if cfg["password_placeholder"]:
+        st.error(
+            "**Database password not configured.** Streamlit is still using a placeholder "
+            "(`your-password` / `changeme`), not your real Supabase password.\n\n"
+            "1. Open [share.streamlit.io](https://share.streamlit.io) → your app → **Settings → Secrets**\n"
+            "2. Paste the block below with your **real** database password\n"
+            "3. Click **Save**, then **Reboot app** (⋮ menu → Reboot app)\n\n"
+            "Secrets must be **flat TOML** (no `export`, no `.env` format):"
+        )
+    else:
+        st.error(
+            "**Database connection failed** with the credentials currently loaded from "
+            f"**{cfg['source']}**.\n\n"
+            f"- Host: `{cfg['host']}`\n"
+            f"- User: `{cfg['user']}`\n"
+            f"- Database: `{cfg['database']}`\n"
+            f"- Password: {cfg['password_preview']}\n\n"
+            f"Error: `{_last_db_error or 'unknown'}`\n\n"
+            "Use the **pooler** host `aws-1-ap-south-1.pooler.supabase.com` and user "
+            "`postgres.mxjhwjxxqtkwsrwtqwuc` (not plain `postgres`)."
+        )
+    with st.expander("Copy-paste secrets template (replace YOUR_REAL_PASSWORD)"):
+        st.code(
+            'SUPABASE_URL = "https://mxjhwjxxqtkwsrwtqwuc.supabase.co"\n'
+            'DB_HOST = "aws-1-ap-south-1.pooler.supabase.com"\n'
+            'DB_PORT = "5432"\n'
+            'DB_NAME = "postgres"\n'
+            'DB_USER = "postgres.mxjhwjxxqtkwsrwtqwuc"\n'
+            'DB_PASSWORD = "YOUR_REAL_PASSWORD"\n'
+            'ORCHESTRATOR_URL = "https://nivara-orchestrator.onrender.com"\n'
+            'VEO_MCP_URL = "https://nivara-veo-mcp.onrender.com"',
+            language="toml",
+        )
+elif _db_ok:
     simulate_activity()
-else:
-    st.error(
-        "Database connection failed. In Streamlit Cloud → Settings → Secrets, set:\n\n"
-        "```toml\n"
-        "DB_HOST = \"aws-1-ap-south-1.pooler.supabase.com\"\n"
-        "DB_USER = \"postgres.mxjhwjxxqtkwsrwtqwuc\"\n"
-        "DB_NAME = \"postgres\"\n"
-        "DB_PASSWORD = \"your-password\"\n"
-        "```"
-    )
 
 # ── Hero header ──
 h1, h2 = st.columns([3, 1])
@@ -578,6 +611,31 @@ with t7:
                     st.success(f"{a} complete") if r.ok else st.error(f"{a} failed")
                     st.rerun()
                 except Exception as e: st.error(str(e))
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Database & Secrets</div>', unsafe_allow_html=True)
+    cfg = connection_config()
+    st.markdown(
+        f"| Setting | Value |\n|---|---|\n"
+        f"| Secrets source | **{cfg['source']}** |\n"
+        f"| DB host | `{cfg['host']}` |\n"
+        f"| DB user | `{cfg['user']}` |\n"
+        f"| DB name | `{cfg['database']}` |\n"
+        f"| Password loaded | **{'Yes' if cfg['password_set'] else 'NO — still placeholder'}** |\n"
+        f"| Supabase URL set | {'Yes' if cfg['supabase_url_set'] else 'No'} |\n"
+        f"| Build | `{APP_BUILD}` |"
+    )
+    if cfg["password_placeholder"]:
+        st.warning(
+            "Password is still a placeholder. In Streamlit **Settings → Secrets**, set "
+            "`DB_PASSWORD = \"your-actual-supabase-password\"` then **Reboot app**."
+        )
+    if st.button("Test database connection", key="test_db"):
+        conn = db()
+        if conn:
+            conn.close()
+            st.success("Database connection OK!")
+        else:
+            st.error(f"Connection failed: {_last_db_error or 'unknown error'}")
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-title">System Status</div>', unsafe_allow_html=True)
     s1, s2, s3, s4 = st.columns(4)
