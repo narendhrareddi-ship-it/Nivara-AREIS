@@ -765,8 +765,12 @@ with t7:
     with s2:
         try:
             import requests
-            r = requests.get(f"{ORCH_URL}/health", timeout=5)
-            st.markdown(status_card("Orchestrator", r.ok), unsafe_allow_html=True)
+            r = requests.get(f"{ORCH_URL}/health", timeout=10)
+            d = r.json() if r.ok else {}
+            online = r.ok and d.get("db_connected", False)
+            st.markdown(status_card("Orchestrator", online), unsafe_allow_html=True)
+            if r.ok and not d.get("db_connected"):
+                st.caption("Orchestrator up but DB not connected — set DB_SSLMODE=require on Render")
         except Exception:
             st.markdown(status_card("Orchestrator", None), unsafe_allow_html=True)
     with s3:

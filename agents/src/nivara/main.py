@@ -54,6 +54,13 @@ class OrchestrateResponse(BaseModel):
 async def health() -> dict[str, Any]:
     llm_ok = await orchestrator.llm.health_check()
     provider = await orchestrator.llm.active_provider()
+    db_connected = False
+    if orchestrator.crm.is_configured():
+        try:
+            orchestrator.crm._execute_query("SELECT 1 AS ok", fetch="one")
+            db_connected = True
+        except Exception as exc:
+            logger.warning("DB health check failed: %s", exc)
     return {
         "status": "ok",
         "llm_available": llm_ok,
@@ -61,6 +68,7 @@ async def health() -> dict[str, Any]:
         "ollama": provider == "ollama",
         "api_auth_enabled": bool(settings.orchestrator_api_key.strip()),
         "supabase_configured": orchestrator.crm.is_configured(),
+        "db_connected": db_connected,
         "agent_count": len(orchestrator._agents),
         "pipeline_version": "20-agent",
     }
