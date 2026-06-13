@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from nivara.agents.base import AgentState, BaseAgent
+from nivara.regions import DEFAULT_REGION
 
 
 class CEOAgent(BaseAgent):
@@ -12,7 +13,7 @@ class CEOAgent(BaseAgent):
     role = "Executive strategist who synthesizes all agent outputs into actionable decisions"
 
     async def run(self, state: AgentState) -> dict[str, Any]:
-        region = state.get("region", "Chennai")
+        region = state.get("region", DEFAULT_REGION)
         outputs = state.get("agent_outputs", {})
 
         prompt = (

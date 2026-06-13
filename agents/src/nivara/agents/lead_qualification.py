@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from nivara.agents.base import AgentState, BaseAgent
+from nivara.regions import DEFAULT_REGION
 
 
 class LeadQualificationAgent(BaseAgent):
@@ -12,7 +13,7 @@ class LeadQualificationAgent(BaseAgent):
     role = "Scores leads based on budget, intent, and fit with NIVARA projects"
 
     async def run(self, state: AgentState) -> dict[str, Any]:
-        region = state.get("region", "Chennai")
+        region = state.get("region", DEFAULT_REGION)
         leads = state.get("leads") or []
 
         if not leads and self.crm.is_configured():
@@ -22,7 +23,7 @@ class LeadQualificationAgent(BaseAgent):
             f"Qualify these real estate leads for NIVARA ({region}):\n"
             f"{leads}\n\n"
             "For each lead: assign score 0-100, status recommendation, "
-            "best matching project, and next action. Focus on Chennai/Andhra budgets."
+            "best matching project, and next action. Focus on Bangalore budgets."
         )
 
         qualification = await self.llm.generate(prompt, system=self.system_prompt(region))
@@ -41,5 +42,5 @@ class LeadQualificationAgent(BaseAgent):
         return {
             "leads": leads,
             "agent_outputs": {**state.get("agent_outputs", {}), self.name: qualification},
-            "next_agent": "WhatsAppAgent",
+            "next_agent": "SalesCoach",
         }

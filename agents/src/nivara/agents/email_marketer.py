@@ -8,6 +8,7 @@ from typing import Any
 import httpx
 
 from nivara.agents.base import AgentState, BaseAgent
+from nivara.regions import DEFAULT_REGION
 
 
 class EmailMarketerAgent(BaseAgent):
@@ -33,7 +34,7 @@ class EmailMarketerAgent(BaseAgent):
             return "sent"
 
     async def run(self, state: AgentState) -> dict[str, Any]:
-        region = state.get("region", "Chennai")
+        region = state.get("region", DEFAULT_REGION)
         leads = state.get("leads") or []
         copy_pack = state.get("agent_outputs", {}).get("Copywriter", "")
         whatsapp_plan = state.get("agent_outputs", {}).get("WhatsAppAgent", "")

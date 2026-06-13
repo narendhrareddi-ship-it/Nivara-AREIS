@@ -6,6 +6,7 @@ from typing import Any
 import httpx
 
 from nivara.agents.base import AgentState, BaseAgent
+from nivara.regions import DEFAULT_REGION
 
 
 class WhatsAppAgent(BaseAgent):
@@ -17,7 +18,7 @@ class WhatsAppAgent(BaseAgent):
         self.mcp_url = "http://localhost:8004"
 
     async def run(self, state: AgentState) -> dict[str, Any]:
-        region = state.get("region", "Chennai")
+        region = state.get("region", DEFAULT_REGION)
         leads = state.get("leads") or []
         
         if not leads:

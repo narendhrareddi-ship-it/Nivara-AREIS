@@ -1,4 +1,4 @@
-"""LangGraph orchestrator connecting all Phase 1–3 agents."""
+"""LangGraph orchestrator — full 20-agent Bangalore pipeline."""
 
 from __future__ import annotations
 
@@ -10,6 +10,8 @@ from langgraph.graph import END, StateGraph
 from nivara.agents import (
     AnalyticsAgent,
     CEOAgent,
+    CMOAgent,
+    COOAgent,
     CompetitorSpyAgent,
     ContentStrategistAgent,
     CopywriterAgent,
@@ -19,7 +21,9 @@ from nivara.agents import (
     LocationScoutAgent,
     MarketAnalystAgent,
     PaidAdsManagerAgent,
+    RegulatoryWatchAgent,
     SEOAgent,
+    SalesCoachAgent,
     SocialMediaManagerAgent,
     WhatsAppAgent,
     VisualDesignerAgent,
@@ -28,13 +32,16 @@ from nivara.agents import (
 from nivara.agents.base import AgentState
 from nivara.db.supabase_client import SupabaseCRM
 from nivara.llm.ollama_client import OllamaClient
+from nivara.regions import DEFAULT_REGION
 
 logger = logging.getLogger(__name__)
 
 AgentName = Literal[
     "MarketAnalyst",
+    "RegulatoryWatch",
     "LocationScout",
     "CompetitorSpy",
+    "CMO",
     "ContentStrategist",
     "Copywriter",
     "SEOAgent",
@@ -42,19 +49,22 @@ AgentName = Literal[
     "SocialMediaManager",
     "PaidAdsManager",
     "LeadQualification",
+    "SalesCoach",
     "WhatsAppAgent",
     "EmailMarketer",
     "AppointmentScheduler",
     "CRM",
     "Analytics",
+    "COO",
     "CEO",
 ]
 
-# Default execution order for subset runs and dashboard pipeline display
 PIPELINE_ORDER: list[str] = [
     "MarketAnalyst",
+    "RegulatoryWatch",
     "LocationScout",
     "CompetitorSpy",
+    "CMO",
     "ContentStrategist",
     "Copywriter",
     "SEOAgent",
@@ -62,11 +72,13 @@ PIPELINE_ORDER: list[str] = [
     "SocialMediaManager",
     "PaidAdsManager",
     "LeadQualification",
+    "SalesCoach",
     "WhatsAppAgent",
     "EmailMarketer",
     "AppointmentScheduler",
     "CRM",
     "Analytics",
+    "COO",
     "CEO",
 ]
 
@@ -81,8 +93,10 @@ class AgentOrchestrator:
         self.crm = crm or SupabaseCRM()
         self._agents: dict[str, Any] = {
             "MarketAnalyst": MarketAnalystAgent(self.llm, self.crm),
+            "RegulatoryWatch": RegulatoryWatchAgent(self.llm, self.crm),
             "LocationScout": LocationScoutAgent(self.llm, self.crm),
             "CompetitorSpy": CompetitorSpyAgent(self.llm, self.crm),
+            "CMO": CMOAgent(self.llm, self.crm),
             "ContentStrategist": ContentStrategistAgent(self.llm, self.crm),
             "Copywriter": CopywriterAgent(self.llm, self.crm),
             "SEOAgent": SEOAgent(self.llm, self.crm),
@@ -90,11 +104,13 @@ class AgentOrchestrator:
             "SocialMediaManager": SocialMediaManagerAgent(self.llm, self.crm),
             "PaidAdsManager": PaidAdsManagerAgent(self.llm, self.crm),
             "LeadQualification": LeadQualificationAgent(self.llm, self.crm),
+            "SalesCoach": SalesCoachAgent(self.llm, self.crm),
             "WhatsAppAgent": WhatsAppAgent(self.llm, self.crm),
             "EmailMarketer": EmailMarketerAgent(self.llm, self.crm),
             "AppointmentScheduler": AppointmentSchedulerAgent(self.llm, self.crm),
             "CRM": CRMAgent(self.llm, self.crm),
             "Analytics": AnalyticsAgent(self.llm, self.crm),
+            "COO": COOAgent(self.llm, self.crm),
             "CEO": CEOAgent(self.llm, self.crm),
         }
         self.graph = self._build_graph()
@@ -138,7 +154,7 @@ class AgentOrchestrator:
     async def run(
         self,
         task: str = "daily_market_analysis",
-        region: str = "Chennai",
+        region: str = DEFAULT_REGION,
         leads: list[dict[str, Any]] | None = None,
         agents: list[str] | None = None,
         media_assets: list[dict[str, Any]] | None = None,

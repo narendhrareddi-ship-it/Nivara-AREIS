@@ -9,7 +9,7 @@ import plotly.express as px
 import random
 
 from theme import CSS, LOGO_SVG, CHART_COLORS, RED, RED_DARK, NAVY, GOLD, SLATE, plotly_layout, stat_card, market_chip, post_card
-from config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, ORCH_URL, VEO_URL, OLLAMA_URL
+from config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, ORCH_URL, VEO_URL, OLLAMA_URL, DEFAULT_REGION
 
 st.set_page_config(page_title="NIVARA — AREIS", page_icon="🏢", layout="wide", initial_sidebar_state="collapsed")
 
@@ -48,42 +48,46 @@ def _val(row, key, default=0):
     return row[key]
 
 RE_AGENTS = [
-    ("MarketAnalyst", "Analyzing Chennai property market trends", "Market report: OMR prices up 11% YoY, ECR demand rising"),
-    ("LocationScout", "Scouting OMR, ECR, and Amaravati micro-markets", "Corridor report: Sholinganallur and GST Road top demand zones"),
-    ("CompetitorSpy", "Scanning competitor real estate listings", "3 new competitor projects detected in Sholinganallur"),
-    ("ContentStrategist", "Generating luxury property content", "Content calendar for Q3 luxury segment created"),
+    ("MarketAnalyst", "Analyzing Bangalore property market trends", "Market report: Whitefield prices up 9% YoY, Sarjapur demand rising"),
+    ("RegulatoryWatch", "Checking Karnataka RERA and BBMP compliance", "All active projects RERA-registered; 1 ad disclosure flag"),
+    ("LocationScout", "Scouting Whitefield, Sarjapur, and North Bangalore corridors", "Corridor report: Electronic City and HSR top demand zones"),
+    ("CompetitorSpy", "Scanning competitor real estate listings", "4 new competitor launches detected in Whitefield"),
+    ("CMO", "Defining brand positioning and campaign themes", "Bangalore luxury positioning and channel mix approved"),
+    ("ContentStrategist", "Generating luxury property content", "Content calendar for Q3 Bangalore segment created"),
     ("Copywriter", "Writing ad copy and nurture sequences", "Meta/Google ad variants and email drip copy ready"),
-    ("SEOAgent", "Optimizing property pages for search", "12 property keywords now rank in top 20"),
+    ("SEOAgent", "Optimizing property pages for search", "14 Bangalore property keywords now rank in top 20"),
     ("VisualDesigner", "Generating cinematic videos from site photos", "Gemini Veo videos created for property listings"),
     ("SocialMediaManager", "Scheduling property showcase posts", "Posts scheduled across Facebook, Instagram, LinkedIn"),
     ("PaidAdsManager", "Optimizing Google and Meta ad spend", "Budget rebalanced toward high-CPL corridors"),
-    ("LeadQualification", "Scoring incoming property inquiries", "2 hot leads, 3 warm leads identified"),
-    ("WhatsAppAgent", "Sending property recommendations", "Campaign delivered to 38 contacts, 12 replies"),
-    ("EmailMarketer", "Sending drip campaigns and newsletters", "Welcome sequence queued for 5 leads with email"),
-    ("AppointmentScheduler", "Scheduling site visits", "4 site visits confirmed for this week"),
-    ("CRM", "Syncing lead data to PostgreSQL", "CRM synchronized \u2014 7 records updated"),
-    ("Analytics", "Compiling performance metrics", "Dashboard metrics refreshed, 15% MoM growth"),
-    ("CEO", "Reviewing market strategy", "Strategy report: focus on OMR corridor approved"),
+    ("LeadQualification", "Scoring incoming property inquiries", "3 hot leads, 2 warm leads identified"),
+    ("SalesCoach", "Preparing objection handling scripts", "Site-visit closing playbook updated for IT buyers"),
+    ("WhatsAppAgent", "Sending property recommendations", "Campaign delivered to 42 contacts, 15 replies"),
+    ("EmailMarketer", "Sending drip campaigns and newsletters", "Welcome sequence queued for 6 leads with email"),
+    ("AppointmentScheduler", "Scheduling site visits", "5 site visits confirmed for this week"),
+    ("CRM", "Syncing lead data to PostgreSQL", "CRM synchronized \u2014 8 records updated"),
+    ("Analytics", "Compiling performance metrics", "Dashboard metrics refreshed, 18% MoM growth"),
+    ("COO", "Reviewing agent SLAs and bottlenecks", "Lead follow-up SLA at 94%; social publish on track"),
+    ("CEO", "Reviewing market strategy", "Strategy report: focus on Whitefield-Sarjapur corridor approved"),
 ]
 
 RE_POSTS = [
-    ("instagram", "Premium 3BHK apartments in OMR Chennai with world-class amenities. Starting at \u20b989L. DM for virtual tour! #ChennaiRealEstate #LuxuryLiving", (2500, 35000)),
-    ("facebook", "New launch alert! Sholinganallur luxury villas with panoramic lake views. Pre-launch prices from \u20b91.8Cr. Register Now!", (5000, 55000)),
-    ("linkedin", "Chennai real estate Q2 2026: Residential prices up 12% YoY. OMR leads at 23% appreciation. Commercial occupancy at 87%. Download full report.", (3000, 28000)),
-    ("twitter", "Breaking: Chennai Metro Phase 2 driving 23% price appreciation in surrounding areas. Top investment zones inside \u2192", (1200, 18000)),
-    ("instagram", "Weekend open house! 4BHK duplex in gated community, Velachery. Premium finishes, clubhouse access. 9 AM - 6 PM Sun.", (1800, 22000)),
-    ("facebook", "Attention investors! Commercial plots in Andhra's new development corridor. 20% below market rate. Limited inventory.", (4000, 42000)),
+    ("instagram", "Premium 3BHK apartments in Whitefield Bangalore with world-class amenities. Starting at \u20b91.2Cr. DM for virtual tour! #BangaloreRealEstate #LuxuryLiving", (2800, 38000)),
+    ("facebook", "New launch alert! Sarjapur Road luxury villas with lake views. Pre-launch prices from \u20b92.1Cr. Register Now!", (5200, 58000)),
+    ("linkedin", "Bangalore real estate Q2 2026: Residential prices up 10% YoY. North Bangalore leads at 18% appreciation. Commercial occupancy at 89%. Download full report.", (3200, 30000)),
+    ("twitter", "Breaking: Namma Metro Phase 3 driving 18% price appreciation in surrounding corridors. Top Bangalore investment zones inside \u2192", (1400, 20000)),
+    ("instagram", "Weekend open house! 4BHK duplex in gated community, HSR Layout. Premium finishes, clubhouse access. 9 AM - 6 PM Sun.", (2000, 24000)),
+    ("facebook", "Attention investors! Plotted developments on Devanahalli corridor. 15% below comparable market rate. Limited inventory.", (4100, 44000)),
 ]
 
 RE_CHAT = [
-    ("whatsapp", "Project brochure request", "Hi, I saw the OMR project online. Can you send me the brochure and price list?", "lead"),
-    ("whatsapp", "Brochure sent with pricing", "Sure! Here's the detailed brochure with all floor plans and pricing options for our OMR luxury project.", "ai"),
+    ("whatsapp", "Project brochure request", "Hi, I saw the Whitefield project online. Can you send me the brochure and price list?", "lead"),
+    ("whatsapp", "Brochure sent with pricing", "Sure! Here's the detailed brochure with all floor plans and pricing options for our Whitefield luxury project.", "ai"),
     ("whatsapp", "Site visit interest", "The 3BHK looks great. Can I schedule a site visit this weekend?", "lead"),
     ("whatsapp", "Site visit confirmed", "Absolutely! I've scheduled you for Saturday at 11 AM. Our team will show you the sample flat and amenities.", "ai"),
     ("whatsapp", "EMI options question", "What are the EMI options available for the 2BHK configuration?", "lead"),
-    ("whatsapp", "EMI plan shared", "We have tie-ups with SBI, HDFC, and ICICI. For a 2BHK at \u20b989L, EMI starts at \u20b978,000/month for 20 years.", "ai"),
-    ("whatsapp", "Budget clarification", "My budget is around \u20b965L. Any options in that range?", "lead"),
-    ("whatsapp", "Budget options sent", "Yes! We have premium 2BHK options starting at \u20b963L in our new phase. Let me send you the available inventory.", "ai"),
+    ("whatsapp", "EMI plan shared", "We have tie-ups with SBI, HDFC, and ICICI. For a 2BHK at \u20b91.1Cr, EMI starts at \u20b986,000/month for 20 years.", "ai"),
+    ("whatsapp", "Budget clarification", "My budget is around \u20b980L. Any options in that range?", "lead"),
+    ("whatsapp", "Budget options sent", "Yes! We have premium 2BHK options starting at \u20b978L in our Electronic City phase. Let me send you the available inventory.", "ai"),
 ]
 
 def simulate_activity():
@@ -147,7 +151,7 @@ h1, h2 = st.columns([3, 1])
 with h1:
     st.markdown(
         '<div class="hero-banner">'
-        '<div class="hero-tag">Chennai · Andhra Pradesh · Autonomous Real Estate AI</div>'
+        '<div class="hero-tag">Bangalore · Karnataka · Autonomous Real Estate AI</div>'
         f'{LOGO_SVG}'
         '</div>',
         unsafe_allow_html=True,
@@ -157,7 +161,7 @@ with h2:
         '<div class="hero-banner" style="text-align:right;padding:1.8rem 1.4rem">'
         '<div class="hero-clock-label">System Time · IST</div>'
         '<div id="clock" class="hero-clock">--:--:--</div>'
-        '<div class="hero-clock-label" style="margin-top:6px">12 AI Agents Active</div>'
+        '<div class="hero-clock-label" style="margin-top:6px">20 AI Agents Active</div>'
         '</div>',
         unsafe_allow_html=True,
     )
@@ -166,10 +170,10 @@ with h2:
 st.markdown('<div class="section-title">Market Overview</div>', unsafe_allow_html=True)
 m1, m2, m3, m4 = st.columns(4)
 market_data = [
-    ("Chennai Avg. Price", "\u20b97,850/sq.ft", "+12.3% YoY"),
-    ("Active Listings", "14,820", "+8% vs Q1"),
-    ("Demand Index", "87.4", "High Demand"),
-    ("Hot Corridor", "OMR Phase 2", "+23% appreciation"),
+    ("Bangalore Avg. Price", "\u20b98,200/sq.ft", "+10.1% YoY"),
+    ("Active Listings", "18,450", "+11% vs Q1"),
+    ("Demand Index", "89.2", "High Demand"),
+    ("Hot Corridor", "Whitefield", "+18% appreciation"),
 ]
 for i, (mcol, (label, val, sub)) in enumerate(zip([m1, m2, m3, m4], market_data)):
     with mcol:
@@ -241,7 +245,7 @@ with t1:
 
 # ═══ TAB 2 ═══
 with t2:
-    agents = ["MarketAnalyst","LocationScout","CompetitorSpy","ContentStrategist","Copywriter","SEOAgent","VisualDesigner","SocialMediaManager","PaidAdsManager","LeadQualification","WhatsAppAgent","EmailMarketer","AppointmentScheduler","CRM","Analytics","CEO"]
+    agents = ["MarketAnalyst","RegulatoryWatch","LocationScout","CompetitorSpy","CMO","ContentStrategist","Copywriter","SEOAgent","VisualDesigner","SocialMediaManager","PaidAdsManager","LeadQualification","SalesCoach","WhatsAppAgent","EmailMarketer","AppointmentScheduler","CRM","Analytics","COO","CEO"]
     pl = q("SELECT agent_name,action,status,timestamp FROM bot_logs WHERE timestamp>=COALESCE((SELECT MAX(timestamp) FROM bot_logs WHERE agent_name='MarketAnalyst' AND action='Starting task'),now()-interval'1 hour') ORDER BY timestamp ASC")
     done = set(); running = None
     if pl:
@@ -372,7 +376,7 @@ with t4:
         )
         caption = st.text_area(
             "Social post caption",
-            value="Experience luxury living with NIVARA REALTY 🏙️ #ChennaiRealEstate #LuxuryLiving",
+            value="Experience luxury living with NIVARA REALTY 🏙️ #BangaloreRealEstate #LuxuryLiving",
             height=60,
         )
         platforms = st.multiselect("Platforms", ["instagram", "facebook", "linkedin"], default=["instagram", "facebook"])
@@ -521,7 +525,7 @@ with t7:
         if st.button(u"\u25B6 FULL PIPELINE", type="primary"):
             try:
                 import requests
-                r = requests.post(f"{ORCH_URL}/orchestrate", json={"task":"daily_market_analysis","region":"Chennai"}, timeout=600)
+                r = requests.post(f"{ORCH_URL}/orchestrate", json={"task":"daily_market_analysis","region":DEFAULT_REGION}, timeout=600)
                 st.success("Pipeline launched!") if r.ok else st.error(f"Failed: {r.status_code}")
                 st.rerun()
             except Exception as e: st.error(f"Connection error: {e}")
@@ -538,14 +542,14 @@ with t7:
         if st.button(u"\u27F3 REFRESH"): st.rerun()
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-title">Manual Agent Dispatch</div>', unsafe_allow_html=True)
-    aa = ["MarketAnalyst","CompetitorSpy","ContentStrategist","SEOAgent","VisualDesigner","SocialMediaManager","LeadQualification","WhatsAppAgent","AppointmentScheduler","CRM","Analytics","CEO"]
+    aa = ["MarketAnalyst","RegulatoryWatch","LocationScout","CompetitorSpy","CMO","ContentStrategist","Copywriter","SEOAgent","VisualDesigner","SocialMediaManager","PaidAdsManager","LeadQualification","SalesCoach","WhatsAppAgent","EmailMarketer","AppointmentScheduler","CRM","Analytics","COO","CEO"]
     ac = st.columns(4)
     for i, a in enumerate(aa):
         with ac[i%4]:
             if st.button(f"RUN {a}", key=f"r_{a}"):
                 try:
                     import requests
-                    r = requests.post(f"{ORCH_URL}/orchestrate", json={"task":"daily_market_analysis","region":"Chennai","agents":[a]}, timeout=120)
+                    r = requests.post(f"{ORCH_URL}/orchestrate", json={"task":"daily_market_analysis","region":DEFAULT_REGION,"agents":[a]}, timeout=120)
                     st.success(f"{a} complete") if r.ok else st.error(f"{a} failed")
                     st.rerun()
                 except Exception as e: st.error(str(e))
@@ -606,15 +610,15 @@ def seed_demo():
         if rc and rc["c"] > 0: return
 
         names = [
-            ("Arun Kumar", "+91-9884012345", "arun.k@email.com", 82, "qualified", "High budget, looking for 3BHK in OMR"),
-            ("Priya Sharma", "+91-9845678901", "priya.s@email.com", 45, "new", "First time buyer, budget under 1Cr"),
+            ("Arun Kumar", "+91-9884012345", "arun.k@email.com", 82, "qualified", "High budget, looking for 3BHK in Whitefield"),
+            ("Priya Sharma", "+91-9845678901", "priya.s@email.com", 45, "new", "First time buyer, budget under 1.2Cr"),
             ("Rajesh Patel", "+91-9876543210", "rajesh.p@email.com", 91, "negotiating", "VIP client, interested in luxury villa"),
-            ("Sneha Reddy", "+91-9988776655", "sneha.r@email.com", 38, "contacted", "Looking for 2BHK near Velachery"),
+            ("Sneha Reddy", "+91-9988776655", "sneha.r@email.com", 38, "contacted", "Looking for 2BHK near HSR Layout"),
             ("Vikram Singh", "+91-9765432109", "vikram.s@email.com", 73, "nurturing", "NRI investor, comparing multiple projects"),
             ("Ananya Gupta", "+91-9654321876", "ananya.g@email.com", 28, "new", "Student, parents looking for investment"),
-            ("Karthik Nair", "+91-9543218765", "karthik.n@email.com", 67, "nurturing", "Looking for 3BHK, budget 1.2-1.5Cr"),
-            ("Divya Krishnan", "+91-9432187654", "divya.k@email.com", 55, "qualified", "Interested in ECR property, sea view"),
-            ("Suresh Babu", "+91-9321876543", "suresh.b@email.com", 88, "converted", "Booked 3BHK in OMR Phase 2"),
+            ("Karthik Nair", "+91-9543218765", "karthik.n@email.com", 67, "nurturing", "Looking for 3BHK, budget 1.5-1.8Cr"),
+            ("Divya Krishnan", "+91-9432187654", "divya.k@email.com", 55, "qualified", "Interested in Sarjapur property, gated community"),
+            ("Suresh Babu", "+91-9321876543", "suresh.b@email.com", 88, "converted", "Booked 3BHK in Whitefield"),
             ("Lakshmi Narayan", "+91-9218765432", "lakshmi.n@email.com", 15, "lost", "Low budget, not responding"),
         ]
         for n, ph, em, sc, sts, nt in names:

@@ -17,8 +17,8 @@ class Settings(BaseSettings):
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "llama3.2"
     agent_log_level: str = "INFO"
-    default_region: str = "Chennai"
-    default_state: str = "Tamil Nadu"
+    default_region: str = "Bangalore"
+    default_state: str = "Karnataka"
     orchestrator_host: str = "0.0.0.0"
     orchestrator_port: int = 8000
 

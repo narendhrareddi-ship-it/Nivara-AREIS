@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from nivara.agents.base import AgentState, BaseAgent
+from nivara.regions import DEFAULT_REGION
 
 
 class CRMAgent(BaseAgent):
@@ -12,7 +13,7 @@ class CRMAgent(BaseAgent):
     role = "Manages lead lifecycle, follow-ups, and CRM activity logging"
 
     async def run(self, state: AgentState) -> dict[str, Any]:
-        region = state.get("region", "Chennai")
+        region = state.get("region", DEFAULT_REGION)
         leads = state.get("leads") or []
         qualification = state.get("agent_outputs", {}).get("LeadQualification", "")
 

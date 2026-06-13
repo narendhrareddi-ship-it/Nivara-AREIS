@@ -26,6 +26,9 @@ class AgentState(TypedDict, total=False):
     auto_publish_social: bool
 
 
+from nivara.regions import DEFAULT_REGION, market_scope
+
+
 class BaseAgent:
     name: str = "BaseAgent"
     role: str = "Base agent"
@@ -34,11 +37,11 @@ class BaseAgent:
         self.llm = llm
         self.crm = crm
 
-    def system_prompt(self, region: str = "Chennai") -> str:
+    def system_prompt(self, region: str = DEFAULT_REGION) -> str:
         return (
             f"You are the {self.name} agent for NIVARA REALTY, a digital marketing agency "
-            f"specializing in real estate in {region}, Tamil Nadu, and Andhra Pradesh. "
-            f"Role: {self.role}. Provide concise, actionable insights."
+            f"specializing in real estate in {market_scope(region)}. "
+            f"Role: {self.role}. Provide concise, actionable insights focused on Bangalore."
         )
 
     async def run(self, state: AgentState) -> dict[str, Any]:

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from nivara.agents.base import AgentState, BaseAgent
+from nivara.regions import DEFAULT_REGION
 
 
 class SEOAgent(BaseAgent):
@@ -12,7 +13,7 @@ class SEOAgent(BaseAgent):
     role = "Optimizes local search visibility, GMB profiles, and organic real estate traffic"
 
     async def run(self, state: AgentState) -> dict[str, Any]:
-        region = state.get("region", "Chennai")
+        region = state.get("region", DEFAULT_REGION)
         market_analysis = state.get("agent_outputs", {}).get("MarketAnalyst", "")
 
         prompt = (

@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from nivara.agents.base import AgentState, BaseAgent
+from nivara.regions import DEFAULT_REGION
 
 
 class AnalyticsAgent(BaseAgent):
@@ -12,7 +13,7 @@ class AnalyticsAgent(BaseAgent):
     role = "Analyzes campaign performance, ROI, and channel effectiveness"
 
     async def run(self, state: AgentState) -> dict[str, Any]:
-        region = state.get("region", "Chennai")
+        region = state.get("region", DEFAULT_REGION)
         analytics: list[dict[str, Any]] = []
         campaigns: list[dict[str, Any]] = []
 
@@ -33,5 +34,5 @@ class AnalyticsAgent(BaseAgent):
             "analytics": analytics,
             "campaigns": campaigns,
             "agent_outputs": {**state.get("agent_outputs", {}), self.name: report},
-            "next_agent": "CEO",
+            "next_agent": "COO",
         }

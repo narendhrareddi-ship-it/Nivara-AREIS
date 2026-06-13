@@ -11,6 +11,7 @@ from pydantic import BaseModel, Field
 
 from nivara.config import settings
 from nivara.orchestrator.graph import AgentOrchestrator
+from nivara.regions import DEFAULT_REGION
 
 logging.basicConfig(level=settings.agent_log_level)
 logger = logging.getLogger(__name__)
@@ -26,7 +27,7 @@ orchestrator = AgentOrchestrator()
 
 class OrchestrateRequest(BaseModel):
     task: str = "daily_market_analysis"
-    region: str = Field(default="Chennai")
+    region: str = Field(default=DEFAULT_REGION)
     leads: list[dict[str, Any]] = Field(default_factory=list)
     agents: list[str] | None = None
     media_assets: list[dict[str, Any]] = Field(default_factory=list)

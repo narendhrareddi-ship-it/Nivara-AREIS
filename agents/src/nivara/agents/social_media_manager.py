@@ -9,6 +9,7 @@ from typing import Any
 import httpx
 
 from nivara.agents.base import AgentState, BaseAgent
+from nivara.regions import DEFAULT_REGION
 
 DEFAULT_PLATFORMS = ["instagram", "facebook", "linkedin"]
 
@@ -96,7 +97,7 @@ class SocialMediaManagerAgent(BaseAgent):
         return published
 
     async def run(self, state: AgentState) -> dict[str, Any]:
-        region = state.get("region", "Chennai")
+        region = state.get("region", DEFAULT_REGION)
         content_strategy = state.get("agent_outputs", {}).get("ContentStrategist", "")
         media_videos = state.get("media_videos") or []
         project_id = state.get("project_id")
@@ -127,7 +128,7 @@ class SocialMediaManagerAgent(BaseAgent):
             if media_videos and auto_publish:
                 default_caption = (
                     f"Discover luxury living in {region} with NIVARA REALTY 🏙️ "
-                    "#ChennaiRealEstate #LuxuryLiving #NivaraRealty"
+                    "#BangaloreRealEstate #LuxuryLiving #NivaraRealty"
                 )
                 for video in media_videos:
                     logs = await self._publish_video(

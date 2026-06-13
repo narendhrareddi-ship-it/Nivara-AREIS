@@ -38,6 +38,8 @@ if not DB_USER or DB_USER == "postgres" and _ref:
 elif not DB_USER:
     DB_USER = "nivara"
 
+DEFAULT_REGION = "Bangalore"
+
 DB_PASSWORD = _get("DB_PASSWORD", "changeme")
 ORCH_URL = _get("ORCHESTRATOR_URL", "http://localhost:8000")
 VEO_URL = _get("VEO_MCP_URL", "http://localhost:8006")

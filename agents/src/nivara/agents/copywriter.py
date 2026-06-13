@@ -5,6 +5,7 @@ from __future__ import annotations
 from typing import Any
 
 from nivara.agents.base import AgentState, BaseAgent
+from nivara.regions import DEFAULT_REGION
 
 
 class CopywriterAgent(BaseAgent):
@@ -12,7 +13,7 @@ class CopywriterAgent(BaseAgent):
     role = "Writes high-converting ad copy, landing page blocks, and email nurture sequences"
 
     async def run(self, state: AgentState) -> dict[str, Any]:
-        region = state.get("region", "Chennai")
+        region = state.get("region", DEFAULT_REGION)
         content_strategy = state.get("agent_outputs", {}).get("ContentStrategist", "")
         location_insight = state.get("agent_outputs", {}).get("LocationScout", "")
         competitor_intel = state.get("agent_outputs", {}).get("CompetitorSpy", "")
@@ -25,7 +26,7 @@ class CopywriterAgent(BaseAgent):
             "Deliver:\n"
             "1) 3 Meta/Google ad variants (headline + primary text + CTA)\n"
             "2) Landing page hero + 3 benefit bullets\n"
-            "3) 2-email nurture sequence (subject + body, Tamil/English mix)\n"
+            "3) 2-email nurture sequence (subject + body, Kannada/English mix)\n"
             "4) WhatsApp opener for cold leads"
         )
 

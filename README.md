@@ -1,6 +1,6 @@
 # NIVARA REALTY — AI Digital Marketing System
 
-Phase 1 foundation for a 15–20 agent digital marketing agency specializing in **Chennai and Andhra Pradesh real estate**. Built entirely on free and open-source tools.
+Phase 1–4 foundation for a **20-agent** digital marketing agency specializing in **Bangalore real estate**. Built on free and open-source tools with optional cloud hosting.
 
 ## Quick Start
 

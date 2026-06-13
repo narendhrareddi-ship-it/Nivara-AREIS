@@ -1,38 +1,34 @@
-"""Location Scout Agent — micro-market analysis for Chennai/Andhra corridors."""
+"""Location Scout Agent — micro-market analysis for Bangalore corridors."""
 
 from __future__ import annotations
 
 from typing import Any
 
 from nivara.agents.base import AgentState, BaseAgent
-
-CORRIDORS = {
-    "Chennai": ["OMR", "ECR", "GST Road", "Velachery", "Sholinganallur", "Porur"],
-    "Andhra Pradesh": ["Amaravati", "Vizag Beach Road", "Guntur", "Tirupati"],
-}
+from nivara.regions import BANGALORE_CORRIDORS, DEFAULT_REGION
 
 
 class LocationScoutAgent(BaseAgent):
     name = "LocationScout"
-    role = "Analyzes micro-markets, corridor demand, and site-location fit for NIVARA projects"
+    role = "Analyzes Bangalore micro-markets, corridor demand, and site-location fit"
 
     async def run(self, state: AgentState) -> dict[str, Any]:
-        region = state.get("region", "Chennai")
+        region = state.get("region", DEFAULT_REGION)
         market_insight = state.get("agent_outputs", {}).get("MarketAnalyst", "")
         projects: list[dict[str, Any]] = []
 
         if self.crm.is_configured():
             projects = self.crm.get_projects(city=region)
 
-        corridors = CORRIDORS.get(region, CORRIDORS["Chennai"])
+        corridors = BANGALORE_CORRIDORS
         prompt = (
-            f"Micro-market scouting report for NIVARA REALTY in {region}.\n"
+            f"Micro-market scouting report for NIVARA REALTY in Bangalore.\n"
             f"Priority corridors: {', '.join(corridors)}\n"
             f"Active projects in CRM: {len(projects)}\n"
             f"Sample listings: {projects[:3]}\n"
             f"Market analyst context:\n{market_insight[:900]}\n\n"
             "For each corridor cover: price/sqft range, infrastructure catalysts "
-            "(metro, IT parks, highways), buyer profile, and top 2 project positioning angles."
+            "(metro, tech parks, airport corridor), buyer profile, and top 2 positioning angles."
         )
 
         report = await self.llm.generate(prompt, system=self.system_prompt(region))

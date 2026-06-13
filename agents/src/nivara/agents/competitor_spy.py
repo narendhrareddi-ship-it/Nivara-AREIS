@@ -7,12 +7,15 @@ from typing import Any
 from nivara.agents.base import AgentState, BaseAgent
 
 
+from nivara.regions import DEFAULT_REGION
+
+
 class CompetitorSpyAgent(BaseAgent):
     name = "CompetitorSpy"
     role = "Monitors competitor projects, pricing, and marketing activity"
 
     async def run(self, state: AgentState) -> dict[str, Any]:
-        region = state.get("region", "Chennai")
+        region = state.get("region", DEFAULT_REGION)
         competitors: list[dict[str, Any]] = []
 
         if self.crm.is_configured():
@@ -29,5 +32,5 @@ class CompetitorSpyAgent(BaseAgent):
         return {
             "competitors": competitors,
             "agent_outputs": {**state.get("agent_outputs", {}), self.name: report},
-            "next_agent": "ContentStrategist",
+            "next_agent": "CMO",
         }
