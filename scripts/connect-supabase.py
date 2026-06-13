@@ -35,14 +35,17 @@ def resolve_db_settings() -> dict[str, str]:
     ref = project_ref_from_url(supabase_url)
 
     host = os.getenv("DB_HOST", "").strip()
+    user = os.getenv("DB_USER", "postgres").strip()
     if (not host or host == "localhost") and ref:
-        host = f"db.{ref}.supabase.co"
+        host = "aws-1-ap-south-1.pooler.supabase.com"
+        if "." not in user or user == "postgres":
+            user = f"postgres.{ref}"
 
     return {
         "host": host,
         "port": os.getenv("DB_PORT", "5432"),
         "dbname": os.getenv("DB_NAME", "postgres"),
-        "user": os.getenv("DB_USER", "postgres"),
+        "user": user,
         "password": os.getenv("DB_PASSWORD", ""),
     }
 
@@ -74,6 +77,7 @@ def connect(cfg: dict[str, str]):
         user=cfg["user"],
         password=cfg["password"],
         connect_timeout=15,
+        sslmode="require",
     )
 
 
