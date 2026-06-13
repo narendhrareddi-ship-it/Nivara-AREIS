@@ -1,0 +1,103 @@
+{
+  "name": "daily_market_pipeline",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 6
+            }
+          ]
+        }
+      },
+      "id": "trigger-daily-6am",
+      "name": "Daily 6 AM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8005/orchestrate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"task\": \"daily_market_analysis\",\n  \"region\": \"Chennai\",\n  \"agents\": [\"MarketAnalyst\", \"CompetitorSpy\", \"Analytics\"]\n}"
+      },
+      "id": "call-agent-orchestrator",
+      "name": "Trigger Agent Orchestrator",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        480,
+        300
+      ],
+      "notes": "Calls LangGraph orchestrator (run agents separately in Phase 1)"
+    },
+    {
+      "id": "log-to-supabase",
+      "name": "Log to Postgres CRM",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        720,
+        300
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "connection": "postgres_local",
+        "query": "-- Insert into crm_activity\nINSERT INTO crm_activity SELECT * FROM json_populate_record(NULL:: crm_activity, { $json });"
+      }
+    },
+    {
+      "parameters": {
+        "content": "## Daily Market Pipeline\n\nRuns at 6 AM IST. Triggers Market Analyst + Competitor Spy agents.\n\n**Phase 1**: HTTP call to orchestrator is optional \u2014 configure SUPABASE_URL and keys in n8n credentials.",
+        "height": 180,
+        "width": 320
+      },
+      "id": "sticky-note",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        200,
+        80
+      ]
+    }
+  ],
+  "connections": {
+    "Daily 6 AM Trigger": {
+      "main": [
+        [
+          {
+            "node": "Trigger Agent Orchestrator",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger Agent Orchestrator": {
+      "main": [
+        [
+          {
+            "node": "Log to Supabase CRM",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata"
+  },
+  "meta": {
+    "templateCredsSetupCompleted": false
+  }
+}

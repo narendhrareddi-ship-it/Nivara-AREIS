@@ -1,0 +1,123 @@
+{
+  "name": "analytics_collector",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 23
+            }
+          ]
+        }
+      },
+      "id": "daily-11pm-trigger",
+      "name": "Daily 11 PM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "jsCode": "// Phase 1: generate mock ad performance data\nconst channels = ['facebook', 'google_ads', 'instagram', 'linkedin'];\nconst today = new Date().toISOString().split('T')[0];\n\nconst records = channels.map(channel => ({\n  date: today,\n  channel,\n  impressions: Math.floor(Math.random() * 20000) + 1000,\n  clicks: Math.floor(Math.random() * 500) + 50,\n  spend: Math.floor(Math.random() * 10000) + 1000,\n  leads_generated: Math.floor(Math.random() * 15) + 1,\n  conversions: Math.floor(Math.random() * 3),\n  is_mock: true,\n  metadata: { source: 'n8n_analytics_collector', phase: 1 }\n}));\n\nreturn records.map(r => {\n  r.ctr = r.impressions > 0 ? +(r.clicks / r.impressions * 100).toFixed(2) : 0;\n  r.cpl = r.leads_generated > 0 ? +(r.spend / r.leads_generated).toFixed(2) : 0;\n  return { json: r };\n});"
+      },
+      "id": "generate-mock-analytics",
+      "name": "Generate Mock Analytics",
+      "type": "n8n-nodes-base.code",
+      "typeVersion": 2,
+      "position": [
+        480,
+        300
+      ]
+    },
+    {
+      "id": "store-analytics-supabase",
+      "name": "Store in Postgres",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [
+        720,
+        300
+      ],
+      "parameters": {
+        "operation": "executeQuery",
+        "connection": "postgres_local",
+        "query": "-- Insert into ad_performance\nINSERT INTO ad_performance SELECT * FROM json_populate_record(NULL:: ad_performance, { $json });"
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8005/orchestrate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"task\": \"analytics_report\",\n  \"agents\": [\"Analytics\"],\n  \"date\": \"{{ new Date().toISOString().split('T')[0] }}\"\n}"
+      },
+      "id": "trigger-analytics-agent",
+      "name": "Trigger Analytics Agent",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        960,
+        300
+      ]
+    },
+    {
+      "parameters": {
+        "content": "## Analytics Collector\n\nGenerates mock ad performance data nightly.\n\nReplace with real Google/Meta API nodes in Phase 3.",
+        "height": 120,
+        "width": 280
+      },
+      "id": "sticky-note-analytics",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        200,
+        80
+      ]
+    }
+  ],
+  "connections": {
+    "Daily 11 PM Trigger": {
+      "main": [
+        [
+          {
+            "node": "Generate Mock Analytics",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Generate Mock Analytics": {
+      "main": [
+        [
+          {
+            "node": "Store in Supabase",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Store in Supabase": {
+      "main": [
+        [
+          {
+            "node": "Trigger Analytics Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1",
+    "timezone": "Asia/Kolkata"
+  }
+}

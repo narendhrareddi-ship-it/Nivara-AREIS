@@ -1,0 +1,82 @@
+{
+  "name": "nivara-crm",
+  "version": "0.1.0",
+  "description": "Supabase CRM MCP server for NIVARA REALTY",
+  "tools": [
+    {
+      "name": "list_leads",
+      "description": "List leads from Supabase CRM, optionally filtered by status",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "enum": ["new", "contacted", "qualified", "converted", "lost"] },
+          "limit": { "type": "integer", "default": 50 }
+        }
+      }
+    },
+    {
+      "name": "get_lead",
+      "description": "Get a single lead by UUID",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "lead_id": { "type": "string" }
+        },
+        "required": ["lead_id"]
+      }
+    },
+    {
+      "name": "create_lead",
+      "description": "Create a new lead in CRM",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "full_name": { "type": "string" },
+          "phone": { "type": "string" },
+          "email": { "type": "string" },
+          "source": { "type": "string", "default": "mcp" },
+          "city": { "type": "string", "default": "Chennai" }
+        },
+        "required": ["full_name", "phone"]
+      }
+    },
+    {
+      "name": "update_lead",
+      "description": "Update lead fields (status, score, notes)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "lead_id": { "type": "string" },
+          "status": { "type": "string" },
+          "score": { "type": "integer" },
+          "ai_qualification_notes": { "type": "string" }
+        },
+        "required": ["lead_id"]
+      }
+    },
+    {
+      "name": "log_activity",
+      "description": "Log CRM activity for a lead",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "lead_id": { "type": "string" },
+          "activity_type": { "type": "string" },
+          "title": { "type": "string" },
+          "description": { "type": "string" }
+        },
+        "required": ["activity_type", "title"]
+      }
+    },
+    {
+      "name": "list_campaigns",
+      "description": "List marketing campaigns",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "status": { "type": "string", "default": "active" }
+        }
+      }
+    }
+  ]
+}

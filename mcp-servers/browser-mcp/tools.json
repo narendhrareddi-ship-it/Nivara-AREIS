@@ -1,0 +1,42 @@
+{
+  "name": "nivara-browser",
+  "version": "0.1.0",
+  "description": "Browser/scraper MCP stub for competitor research (Playwright-ready)",
+  "tools": [
+    {
+      "name": "scrape_url",
+      "description": "Scrape a URL and return page title and text excerpt (stub in Phase 1)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "url": { "type": "string", "format": "uri" },
+          "selector": { "type": "string", "description": "CSS selector (optional)" }
+        },
+        "required": ["url"]
+      }
+    },
+    {
+      "name": "scrape_competitor",
+      "description": "Scrape a competitor real estate website for project/pricing info",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "competitor_name": { "type": "string" },
+          "url": { "type": "string" }
+        },
+        "required": ["competitor_name", "url"]
+      }
+    },
+    {
+      "name": "search_listings",
+      "description": "Mock search for property listings in a Chennai/Andhra area",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "location": { "type": "string", "default": "Chennai OMR" },
+          "property_type": { "type": "string", "default": "apartment" }
+        }
+      }
+    }
+  ]
+}

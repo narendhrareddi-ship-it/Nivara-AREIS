@@ -1,0 +1,58 @@
+{
+  "name": "nivara-social",
+  "version": "0.1.0",
+  "description": "Mock social media MCP for FB/IG/LinkedIn/X/YouTube webhooks",
+  "tools": [
+    {
+      "name": "publish_post",
+      "description": "Mock publish to a social platform (logs + stores in Supabase)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "platform": { "type": "string", "enum": ["facebook", "instagram", "linkedin", "twitter", "youtube"] },
+          "content": { "type": "string" },
+          "campaign_id": { "type": "string" },
+          "project_id": { "type": "string" }
+        },
+        "required": ["platform", "content"]
+      }
+    },
+    {
+      "name": "schedule_post",
+      "description": "Schedule a mock social post",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "platform": { "type": "string" },
+          "content": { "type": "string" },
+          "scheduled_at": { "type": "string", "format": "date-time" }
+        },
+        "required": ["platform", "content", "scheduled_at"]
+      }
+    },
+    {
+      "name": "get_engagement",
+      "description": "Get mock engagement metrics for a post",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "post_id": { "type": "string" }
+        },
+        "required": ["post_id"]
+      }
+    },
+    {
+      "name": "webhook_receiver",
+      "description": "Simulate inbound social webhook event",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "platform": { "type": "string" },
+          "event_type": { "type": "string" },
+          "payload": { "type": "object" }
+        },
+        "required": ["platform", "event_type"]
+      }
+    }
+  ]
+}

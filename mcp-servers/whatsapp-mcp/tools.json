@@ -1,0 +1,44 @@
+{
+  "name": "nivara-whatsapp",
+  "version": "0.1.0",
+  "description": "Mock WhatsApp Business webhook handler with lead scoring",
+  "tools": [
+    {
+      "name": "handle_message",
+      "description": "Process an inbound WhatsApp message and score the lead",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "phone": { "type": "string" },
+          "message": { "type": "string" },
+          "lead_id": { "type": "string" }
+        },
+        "required": ["phone", "message"]
+      }
+    },
+    {
+      "name": "send_message",
+      "description": "Mock send WhatsApp message (logs only in Phase 1)",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "phone": { "type": "string" },
+          "message": { "type": "string" }
+        },
+        "required": ["phone", "message"]
+      }
+    },
+    {
+      "name": "score_lead",
+      "description": "Score a lead based on WhatsApp conversation history",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "phone": { "type": "string" },
+          "conversation": { "type": "array", "items": { "type": "string" } }
+        },
+        "required": ["phone"]
+      }
+    }
+  ]
+}
