@@ -35,7 +35,8 @@ cd agents && nivara-orchestrator          # :8000
 
 ### Dashboard
 
-1. Open http://localhost:8501 → **MEDIA** tab
+1. Open the dashboard — see [docs/DASHBOARD_ACCESS.md](docs/DASHBOARD_ACCESS.md) if `localhost:8501` does not load
+2. Go to the **MEDIA** tab
 2. Upload site photo, enter motion prompt and caption
 3. Click **GENERATE VIDEO & POST**
 

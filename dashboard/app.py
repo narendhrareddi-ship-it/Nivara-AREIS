@@ -133,10 +133,10 @@ BG = u'''<canvas id="bg" style="position:fixed;top:0;left:0;width:100%;height:10
 })();
 </script>'''
 
-DB_HOST = os.environ.get("DB_HOST", "postgres")
+DB_HOST = os.environ.get("DB_HOST", "localhost")
 DB_PORT = int(os.environ.get("DB_PORT", "5432"))
-ORCH_URL = os.environ.get("ORCHESTRATOR_URL", "http://host.docker.internal:8005")
-VEO_URL = os.environ.get("VEO_MCP_URL", "http://host.docker.internal:8006")
+ORCH_URL = os.environ.get("ORCHESTRATOR_URL", "http://localhost:8000")
+VEO_URL = os.environ.get("VEO_MCP_URL", "http://localhost:8006")
 
 def db():
     try: return psycopg2.connect(host=DB_HOST, port=DB_PORT, database="nivara", user="nivara", password="changeme", cursor_factory=RealDictCursor)
