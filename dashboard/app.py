@@ -10,6 +10,9 @@ import random
 
 from theme import CSS, LOGO_SVG, CHART_COLORS, RED, RED_DARK, NAVY, GOLD, SLATE, plotly_layout, stat_card, market_chip, post_card
 from config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, ORCH_URL, VEO_URL, OLLAMA_URL, DEFAULT_REGION
+from safe_data import val as _val, text as _text, fmt_dt as _fmt_dt, trunc as _trunc
+
+APP_BUILD = "2026-06-13c"
 
 st.set_page_config(page_title="NIVARA — AREIS", page_icon="🏢", layout="wide", initial_sidebar_state="collapsed")
 
@@ -40,37 +43,6 @@ def q(sql, p=None, one=False):
         return None if one else []
     finally:
         c.close()
-
-def _val(row, key, default=0):
-    """Safe read from query result — avoids crash when DB is unreachable."""
-    if not row or key not in row or row[key] is None:
-        return default
-    return row[key]
-
-
-def _text(row, key, default="", maxlen=None):
-    """Safe string from a query row — handles NULL and non-string DB values."""
-    if not row:
-        s = default
-    else:
-        val = row.get(key)
-        if val is None:
-            s = default
-        elif isinstance(val, str):
-            s = val
-        else:
-            s = str(val)
-    return s[:maxlen] if maxlen is not None else s
-
-
-def _fmt_dt(val, fmt="%d %b %H:%M", default="—"):
-    """Safe datetime formatting."""
-    if val is None:
-        return default
-    try:
-        return val.strftime(fmt)
-    except Exception:
-        return default
 
 RE_AGENTS = [
     ("MarketAnalyst", "Analyzing Bangalore property market trends", "Market report: Whitefield prices up 9% YoY, Sarjapur demand rising"),
@@ -176,7 +148,8 @@ h1, h2 = st.columns([3, 1])
 with h1:
     st.markdown(
         '<div class="hero-banner">'
-        '<div class="hero-tag">Bangalore · Karnataka · Autonomous Real Estate AI</div>'
+        '<div class="hero-tag">Bangalore · Karnataka · Autonomous Real Estate AI · '
+        f'Build {APP_BUILD}</div>'
         f'{LOGO_SVG}'
         '</div>',
         unsafe_allow_html=True,
@@ -451,20 +424,30 @@ with t4:
 
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-title">Media Library</div>', unsafe_allow_html=True)
-    media = q("SELECT id, asset_type, status, source_url, output_url, prompt, created_at FROM media_assets ORDER BY created_at DESC LIMIT 20")
-    if media:
-        for m in media:
-            url = _text(m, "output_url") or _text(m, "source_url")
-            st.markdown(
-                f'<div class="card" style="margin-bottom:8px">'
-                f'<span style="font-size:0.72rem;font-weight:700;color:{RED}">'
-                f'{_text(m, "asset_type", "unknown").upper()} — {_text(m, "status", "unknown").upper()}</span>'
-                f'<p style="font-size:0.8rem;color:{SLATE};margin:4px 0">{_text(m, "prompt", "", 100)}</p>'
-                f'<p style="font-size:0.7rem;color:#94A3B8">{(url[:80] if url else "")}</p></div>',
-                unsafe_allow_html=True,
-            )
-    else:
-        st.info("No media assets yet. Upload a site photo to get started.")
+    try:
+        media = q(
+            "SELECT id, asset_type, status, source_url, output_url, "
+            "COALESCE(prompt, '') AS prompt, created_at "
+            "FROM media_assets ORDER BY created_at DESC LIMIT 20"
+        )
+        if media:
+            for m in media:
+                url = _text(m, "output_url") or _text(m, "source_url")
+                prompt = _text(m, "prompt", "", 100)
+                asset_type = _text(m, "asset_type", "unknown").upper()
+                status = _text(m, "status", "unknown").upper()
+                st.markdown(
+                    f'<div class="card" style="margin-bottom:8px">'
+                    f'<span style="font-size:0.72rem;font-weight:700;color:{RED}">'
+                    f'{asset_type} — {status}</span>'
+                    f'<p style="font-size:0.8rem;color:{SLATE};margin:4px 0">{prompt}</p>'
+                    f'<p style="font-size:0.7rem;color:#94A3B8">{_trunc(url, 80)}</p></div>',
+                    unsafe_allow_html=True,
+                )
+        else:
+            st.info("No media assets yet. Upload a site photo to get started.")
+    except Exception as exc:
+        st.warning(f"Media library could not load: {exc}")
 
 # ═══ TAB 5 — CHAT ═══
 with t5:
