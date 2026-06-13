@@ -12,7 +12,7 @@ from theme import CSS, LOGO_SVG, CHART_COLORS, RED, RED_DARK, NAVY, GOLD, SLATE,
 from config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, ORCH_URL, VEO_URL, OLLAMA_URL, DEFAULT_REGION
 from safe_data import val as _val, text as _text, fmt_dt as _fmt_dt, trunc as _trunc
 
-APP_BUILD = "2026-06-13d"
+APP_BUILD = "2026-06-13e"
 
 st.set_page_config(page_title="NIVARA — AREIS", page_icon="🏢", layout="wide", initial_sidebar_state="collapsed")
 
@@ -208,6 +208,13 @@ for col, (val, label, sub, accent) in zip(all_cols, stats):
 
 st.markdown("<br>", unsafe_allow_html=True)
 
+PIPELINE_AGENTS = [
+    "MarketAnalyst", "RegulatoryWatch", "LocationScout", "CompetitorSpy", "CMO",
+    "ContentStrategist", "Copywriter", "SEOAgent", "VisualDesigner", "SocialMediaManager",
+    "PaidAdsManager", "LeadQualification", "SalesCoach", "WhatsAppAgent", "EmailMarketer",
+    "AppointmentScheduler", "CRM", "Analytics", "COO", "CEO",
+]
+
 # ── Tabs ──
 t1, t2, t3, t4, t5, t6, t7 = st.tabs([
     "Activity", "Pipeline", "Social", "Media", "Chat", "Leads", "Settings"
@@ -216,10 +223,10 @@ t1, t2, t3, t4, t5, t6, t7 = st.tabs([
 # ═══ TAB 1 ═══
 with t1:
     c1, c2, c3 = st.columns([1, 1, 2])
-    with c1: sf = st.selectbox("", ["All", "success", "processing", "error"], label_visibility="collapsed")
-    with c2: af = st.selectbox("", ["All", "MarketAnalyst","CompetitorSpy","ContentStrategist","SEOAgent","VisualDesigner","SocialMediaManager","LeadQualification","WhatsAppAgent","AppointmentScheduler","CRM","Analytics","CEO"], label_visibility="collapsed")
+    with c1: sf = st.selectbox("", ["All", "success", "processing", "error"], label_visibility="collapsed", key="filter_status")
+    with c2: af = st.selectbox("", ["All"] + PIPELINE_AGENTS, label_visibility="collapsed", key="filter_agent")
     with c3:
-        if st.button(u"\u27F3 REFRESH"): st.rerun()
+        if st.button(u"\u27F3 REFRESH", key="refresh_activity"): st.rerun()
     sql = "SELECT * FROM bot_logs WHERE 1=1"; pr = []
     if sf != "All": sql += " AND status=%s"; pr.append(sf)
     if af != "All": sql += " AND agent_name=%s"; pr.append(af)
@@ -247,7 +254,7 @@ with t1:
 
 # ═══ TAB 2 ═══
 with t2:
-    agents = ["MarketAnalyst","RegulatoryWatch","LocationScout","CompetitorSpy","CMO","ContentStrategist","Copywriter","SEOAgent","VisualDesigner","SocialMediaManager","PaidAdsManager","LeadQualification","SalesCoach","WhatsAppAgent","EmailMarketer","AppointmentScheduler","CRM","Analytics","COO","CEO"]
+    agents = PIPELINE_AGENTS
     pl = q("SELECT agent_name,action,status,timestamp FROM bot_logs WHERE timestamp>=COALESCE((SELECT MAX(timestamp) FROM bot_logs WHERE agent_name='MarketAnalyst' AND action='Starting task'),now()-interval'1 hour') ORDER BY timestamp ASC")
     done = set(); running = None
     if pl:
@@ -297,9 +304,9 @@ with t2:
 with t3:
     c1, c2 = st.columns([1, 4])
     with c1:
-        pf = st.selectbox("", ["All","facebook","instagram","linkedin","twitter"], label_visibility="collapsed")
-        if st.button("+ NEW POST", type="primary"): st.session_state.f = True
-        if st.button("SIMULATE POST"): st.session_state.sim_post = True
+        pf = st.selectbox("", ["All","facebook","instagram","linkedin","twitter"], label_visibility="collapsed", key="filter_platform")
+        if st.button("+ NEW POST", type="primary", key="new_post"): st.session_state.f = True
+        if st.button("SIMULATE POST", key="sim_post"): st.session_state.sim_post = True
     with c2:
         if st.session_state.get("f"):
             with st.container(border=True):
@@ -356,7 +363,7 @@ with t4:
         proj_sel = st.selectbox("Project", ["— None —"] + list(proj_options.keys())) if proj_options else None
         project_id = proj_options.get(proj_sel) if proj_sel and proj_sel != "— None —" else None
 
-        if uploaded and st.button("UPLOAD PHOTO", type="primary"):
+        if uploaded and st.button("UPLOAD PHOTO", type="primary", key="upload_photo"):
             try:
                 files = {"file": (uploaded.name, uploaded.getvalue(), uploaded.type)}
                 data = {}
@@ -387,7 +394,7 @@ with t4:
         )
         platforms = st.multiselect("Platforms", ["instagram", "facebook", "linkedin"], default=["instagram", "facebook"])
 
-        if st.button("🎬 GENERATE VIDEO & POST", type="primary"):
+        if st.button("🎬 GENERATE VIDEO & POST", type="primary", key="generate_video"):
             asset = st.session_state.get("last_media_asset", {})
             asset_id = str(asset.get("id", ""))
             if not asset_id:
@@ -496,8 +503,8 @@ with t5:
 # ═══ TAB 6 — LEADS ═══
 with t6:
     c1, c2 = st.columns(2)
-    with c1: sf2 = st.selectbox("", ["All","new","contacted","qualified","nurturing","negotiating","converted","lost"], label_visibility="collapsed")
-    with c2: sb = st.selectbox("", ["Score \u2193","Score \u2191","Name A-Z","Newest"], label_visibility="collapsed")
+    with c1: sf2 = st.selectbox("", ["All","new","contacted","qualified","nurturing","negotiating","converted","lost"], label_visibility="collapsed", key="filter_lead_status")
+    with c2: sb = st.selectbox("", ["Score \u2193","Score \u2191","Name A-Z","Newest"], label_visibility="collapsed", key="sort_leads")
     sql = "SELECT full_name,phone,email,score,status,ai_qualification_notes FROM leads WHERE 1=1"; p3 = []
     if sf2 != "All": sql += " AND status=%s"; p3.append(sf2)
     sql += {"Score \u2193":" ORDER BY score DESC","Score \u2191":" ORDER BY score ASC","Name A-Z":" ORDER BY full_name ASC","Newest":" ORDER BY created_at DESC"}.get(sb, " ORDER BY score DESC")
@@ -540,7 +547,7 @@ with t7:
     st.markdown('<div class="section-title">Pipeline Controls</div>', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
-        if st.button(u"\u25B6 FULL PIPELINE", type="primary"):
+        if st.button(u"\u25B6 FULL PIPELINE", type="primary", key="full_pipeline"):
             try:
                 import requests
                 r = requests.post(f"{ORCH_URL}/orchestrate", json={"task":"daily_market_analysis","region":DEFAULT_REGION}, timeout=600)
@@ -548,19 +555,19 @@ with t7:
                 st.rerun()
             except Exception as e: st.error(f"Connection error: {e}")
     with c2:
-        if st.button(u"\u27F3 HEALTH CHECK"):
+        if st.button(u"\u27F3 HEALTH CHECK", key="health_check"):
             try:
                 import requests
                 r = requests.get(f"{ORCH_URL}/health", timeout=10); d = r.json()
                 st.success(f"Ollama: {d['ollama']} | DB: {d['supabase_configured']}")
             except Exception as e: st.error(f"Unreachable: {e}")
     with c3:
-        if st.button(u"\u2715 CLEAR LOGS"): q("DELETE FROM bot_logs", one=True); st.success("Cleared!"); st.rerun()
+        if st.button(u"\u2715 CLEAR LOGS", key="clear_logs"): q("DELETE FROM bot_logs", one=True); st.success("Cleared!"); st.rerun()
     with c4:
-        if st.button(u"\u27F3 REFRESH"): st.rerun()
+        if st.button(u"\u27F3 REFRESH", key="refresh_settings"): st.rerun()
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-title">Manual Agent Dispatch</div>', unsafe_allow_html=True)
-    aa = ["MarketAnalyst","RegulatoryWatch","LocationScout","CompetitorSpy","CMO","ContentStrategist","Copywriter","SEOAgent","VisualDesigner","SocialMediaManager","PaidAdsManager","LeadQualification","SalesCoach","WhatsAppAgent","EmailMarketer","AppointmentScheduler","CRM","Analytics","COO","CEO"]
+    aa = PIPELINE_AGENTS
     ac = st.columns(4)
     for i, a in enumerate(aa):
         with ac[i%4]:
