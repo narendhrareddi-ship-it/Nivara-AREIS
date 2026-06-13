@@ -16,7 +16,44 @@ from config import (
 )
 from safe_data import val as _val, text as _text, fmt_dt as _fmt_dt, trunc as _trunc
 
-APP_BUILD = "2026-06-13f"
+APP_BUILD = "2026-06-13g"
+
+# 20-agent pipeline order (single source of truth)
+PIPELINE_AGENTS = [
+    "MarketAnalyst", "RegulatoryWatch", "LocationScout", "CompetitorSpy", "CMO",
+    "ContentStrategist", "Copywriter", "SEOAgent", "VisualDesigner", "SocialMediaManager",
+    "PaidAdsManager", "LeadQualification", "SalesCoach", "WhatsAppAgent", "EmailMarketer",
+    "AppointmentScheduler", "CRM", "Analytics", "COO", "CEO",
+]
+
+AGENT_SIM_DETAILS: dict[str, tuple[str, str]] = {
+    "MarketAnalyst": ("Analyzing Bangalore property market trends", "Market report: Whitefield prices up 9% YoY"),
+    "RegulatoryWatch": ("Checking Karnataka RERA and BBMP compliance", "All active projects RERA-registered"),
+    "LocationScout": ("Scouting Whitefield, Sarjapur, North Bangalore", "Electronic City and HSR top demand zones"),
+    "CompetitorSpy": ("Scanning competitor real estate listings", "4 new competitor launches in Whitefield"),
+    "CMO": ("Defining brand positioning and campaign themes", "Bangalore luxury positioning approved"),
+    "ContentStrategist": ("Generating luxury property content", "Q3 Bangalore content calendar created"),
+    "Copywriter": ("Writing ad copy and nurture sequences", "Meta/Google ad variants ready"),
+    "SEOAgent": ("Optimizing property pages for search", "14 Bangalore keywords in top 20"),
+    "VisualDesigner": ("Generating cinematic videos from site photos", "Gemini Veo videos created"),
+    "SocialMediaManager": ("Scheduling property showcase posts", "Posts scheduled on FB, IG, LinkedIn"),
+    "PaidAdsManager": ("Optimizing Google and Meta ad spend", "Budget rebalanced for Bangalore corridors"),
+    "LeadQualification": ("Scoring incoming property inquiries", "3 hot leads, 2 warm leads identified"),
+    "SalesCoach": ("Preparing objection handling scripts", "Site-visit closing playbook updated"),
+    "WhatsAppAgent": ("Sending property recommendations", "Campaign delivered to 42 contacts"),
+    "EmailMarketer": ("Sending drip campaigns and newsletters", "Welcome sequence queued for 6 leads"),
+    "AppointmentScheduler": ("Scheduling site visits", "5 site visits confirmed this week"),
+    "CRM": ("Syncing lead data to PostgreSQL", "CRM synchronized — 8 records updated"),
+    "Analytics": ("Compiling performance metrics", "Dashboard metrics refreshed, 18% MoM growth"),
+    "COO": ("Reviewing agent SLAs and bottlenecks", "Lead follow-up SLA at 94%"),
+    "CEO": ("Reviewing market strategy", "Focus on Whitefield-Sarjapur corridor approved"),
+}
+
+RE_AGENTS = [
+    (name, AGENT_SIM_DETAILS.get(name, (f"Running {name}", f"{name} completed"))[0],
+     AGENT_SIM_DETAILS.get(name, (f"Running {name}", f"{name} completed"))[1])
+    for name in PIPELINE_AGENTS
+]
 
 st.set_page_config(page_title="NIVARA — AREIS", page_icon="🏢", layout="wide", initial_sidebar_state="collapsed")
 
@@ -51,29 +88,6 @@ def q(sql, p=None, one=False):
         return None if one else []
     finally:
         c.close()
-
-RE_AGENTS = [
-    ("MarketAnalyst", "Analyzing Bangalore property market trends", "Market report: Whitefield prices up 9% YoY, Sarjapur demand rising"),
-    ("RegulatoryWatch", "Checking Karnataka RERA and BBMP compliance", "All active projects RERA-registered; 1 ad disclosure flag"),
-    ("LocationScout", "Scouting Whitefield, Sarjapur, and North Bangalore corridors", "Corridor report: Electronic City and HSR top demand zones"),
-    ("CompetitorSpy", "Scanning competitor real estate listings", "4 new competitor launches detected in Whitefield"),
-    ("CMO", "Defining brand positioning and campaign themes", "Bangalore luxury positioning and channel mix approved"),
-    ("ContentStrategist", "Generating luxury property content", "Content calendar for Q3 Bangalore segment created"),
-    ("Copywriter", "Writing ad copy and nurture sequences", "Meta/Google ad variants and email drip copy ready"),
-    ("SEOAgent", "Optimizing property pages for search", "14 Bangalore property keywords now rank in top 20"),
-    ("VisualDesigner", "Generating cinematic videos from site photos", "Gemini Veo videos created for property listings"),
-    ("SocialMediaManager", "Scheduling property showcase posts", "Posts scheduled across Facebook, Instagram, LinkedIn"),
-    ("PaidAdsManager", "Optimizing Google and Meta ad spend", "Budget rebalanced toward high-CPL corridors"),
-    ("LeadQualification", "Scoring incoming property inquiries", "3 hot leads, 2 warm leads identified"),
-    ("SalesCoach", "Preparing objection handling scripts", "Site-visit closing playbook updated for IT buyers"),
-    ("WhatsAppAgent", "Sending property recommendations", "Campaign delivered to 42 contacts, 15 replies"),
-    ("EmailMarketer", "Sending drip campaigns and newsletters", "Welcome sequence queued for 6 leads with email"),
-    ("AppointmentScheduler", "Scheduling site visits", "5 site visits confirmed for this week"),
-    ("CRM", "Syncing lead data to PostgreSQL", "CRM synchronized \u2014 8 records updated"),
-    ("Analytics", "Compiling performance metrics", "Dashboard metrics refreshed, 18% MoM growth"),
-    ("COO", "Reviewing agent SLAs and bottlenecks", "Lead follow-up SLA at 94%; social publish on track"),
-    ("CEO", "Reviewing market strategy", "Strategy report: focus on Whitefield-Sarjapur corridor approved"),
-]
 
 RE_POSTS = [
     ("instagram", "Premium 3BHK apartments in Whitefield Bangalore with world-class amenities. Starting at \u20b91.2Cr. DM for virtual tour! #BangaloreRealEstate #LuxuryLiving", (2800, 38000)),
