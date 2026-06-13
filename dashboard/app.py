@@ -47,6 +47,31 @@ def _val(row, key, default=0):
         return default
     return row[key]
 
+
+def _text(row, key, default="", maxlen=None):
+    """Safe string from a query row — handles NULL and non-string DB values."""
+    if not row:
+        s = default
+    else:
+        val = row.get(key)
+        if val is None:
+            s = default
+        elif isinstance(val, str):
+            s = val
+        else:
+            s = str(val)
+    return s[:maxlen] if maxlen is not None else s
+
+
+def _fmt_dt(val, fmt="%d %b %H:%M", default="—"):
+    """Safe datetime formatting."""
+    if val is None:
+        return default
+    try:
+        return val.strftime(fmt)
+    except Exception:
+        return default
+
 RE_AGENTS = [
     ("MarketAnalyst", "Analyzing Bangalore property market trends", "Market report: Whitefield prices up 9% YoY, Sarjapur demand rising"),
     ("RegulatoryWatch", "Checking Karnataka RERA and BBMP compliance", "All active projects RERA-registered; 1 ad disclosure flag"),
@@ -229,15 +254,19 @@ with t1:
     logs = q(sql, tuple(pr))
     if logs:
         for r in logs:
-            dot = "dot-ok" if r["status"] == "success" else "dot-err" if r["status"] == "error" else "dot-run"
-            status_color = "#16A34A" if r["status"] == "success" else RED if r["status"] == "error" else "#2563EB"
-            detail = r.get("details", "") or ""
+            detail = _text(r, "details", "", 120)
+            ts = _fmt_dt(r.get("timestamp"), "%H:%M:%S")
+            agent = _text(r, "agent_name", "Unknown")
+            action = _text(r, "action", "")
+            status = _text(r, "status", "")
+            dot = "dot-ok" if status == "success" else "dot-err" if status == "error" else "dot-run"
+            status_color = "#16A34A" if status == "success" else RED if status == "error" else "#2563EB"
             st.markdown(
                 f'<div class="log-row"><span class="dot {dot}"></span>'
-                f'<span style="color:{SLATE};margin-right:8px">[{r["timestamp"].strftime("%H:%M:%S")}]</span>'
-                f'<span style="font-weight:700;color:{NAVY};margin-right:8px">{r["agent_name"]}</span>'
-                f'<span style="color:{status_color};font-weight:600;margin-right:10px">{r["action"]}</span>'
-                f'<span style="color:#475569">{detail[:120]}</span></div>',
+                f'<span style="color:{SLATE};margin-right:8px">[{ts}]</span>'
+                f'<span style="font-weight:700;color:{NAVY};margin-right:8px">{agent}</span>'
+                f'<span style="color:{status_color};font-weight:600;margin-right:10px">{action}</span>'
+                f'<span style="color:#475569">{detail}</span></div>',
                 unsafe_allow_html=True,
             )
     else:
@@ -324,10 +353,10 @@ with t3:
         for p in posts:
             st.markdown(
                 post_card(
-                    p["platform"].upper(),
-                    p["published_at"].strftime("%d %b %H:%M"),
-                    p["content"],
-                    p["reach"],
+                    _text(p, "platform", "unknown").upper(),
+                    _fmt_dt(p.get("published_at")),
+                    _text(p, "content", ""),
+                    _val(p, "reach", 0),
                 ),
                 unsafe_allow_html=True,
             )
@@ -341,7 +370,11 @@ with t4:
     import requests as req
 
     projects = q("SELECT id, name, location_city FROM projects WHERE is_active=true ORDER BY name")
-    proj_options = {f"{p['name']} ({p['location_city']})": str(p['id']) for p in projects} if projects else {}
+    proj_options = {
+        f"{_text(p, 'name', 'Project')} ({_text(p, 'location_city', DEFAULT_REGION)})": str(_val(p, "id", ""))
+        for p in projects
+        if _val(p, "id", "")
+    } if projects else {}
 
     col_up, col_gen = st.columns([1, 1])
     with col_up:
@@ -421,12 +454,13 @@ with t4:
     media = q("SELECT id, asset_type, status, source_url, output_url, prompt, created_at FROM media_assets ORDER BY created_at DESC LIMIT 20")
     if media:
         for m in media:
-            url = m.get("output_url") or m.get("source_url") or ""
+            url = _text(m, "output_url") or _text(m, "source_url")
             st.markdown(
                 f'<div class="card" style="margin-bottom:8px">'
-                f'<span style="font-size:0.72rem;font-weight:700;color:{RED}">{m["asset_type"].upper()} — {m["status"].upper()}</span>'
-                f'<p style="font-size:0.8rem;color:{SLATE};margin:4px 0">{m.get("prompt", "")[:100]}</p>'
-                f'<p style="font-size:0.7rem;color:#94A3B8">{url[:80]}</p></div>',
+                f'<span style="font-size:0.72rem;font-weight:700;color:{RED}">'
+                f'{_text(m, "asset_type", "unknown").upper()} — {_text(m, "status", "unknown").upper()}</span>'
+                f'<p style="font-size:0.8rem;color:{SLATE};margin:4px 0">{_text(m, "prompt", "", 100)}</p>'
+                f'<p style="font-size:0.7rem;color:#94A3B8">{(url[:80] if url else "")}</p></div>',
                 unsafe_allow_html=True,
             )
     else:
@@ -440,21 +474,22 @@ with t5:
         ch = q("SELECT ca.*,l.full_name FROM crm_activity ca LEFT JOIN leads l ON l.id=ca.lead_id WHERE ca.activity_type='whatsapp' ORDER BY ca.created_at ASC LIMIT 30")
         if ch:
             for c in ch:
-                bot = c.get("performed_by")=="ai"; nm = c.get("full_name") or "Lead"
-                title = c.get("title") or ""
-                desc = c.get("description") or ""
+                bot = c.get("performed_by") == "ai"
+                nm = _text(c, "full_name", "Lead")
+                title = _text(c, "title", "")
+                desc = _text(c, "description", "", 150)
                 if bot:
                     st.markdown(
                         f'<div class="chat-ai"><span style="font-size:0.65rem;color:{SLATE};font-weight:600">AI AGENT</span><br>'
                         f'<span style="font-size:0.85rem;font-weight:600;color:{NAVY}">{title}</span><br>'
-                        f'<span style="font-size:0.78rem;color:{SLATE}">{desc[:150]}</span></div>',
+                        f'<span style="font-size:0.78rem;color:{SLATE}">{desc}</span></div>',
                         unsafe_allow_html=True,
                     )
                 else:
                     st.markdown(
                         f'<div class="chat-lead"><span style="font-size:0.65rem;color:{SLATE};font-weight:600">{nm}</span><br>'
                         f'<span style="font-size:0.85rem;font-weight:600;color:{NAVY}">{title}</span><br>'
-                        f'<span style="font-size:0.78rem;color:{SLATE}">{desc[:150]}</span></div>',
+                        f'<span style="font-size:0.78rem;color:{SLATE}">{desc}</span></div>',
                         unsafe_allow_html=True,
                     )
         else:
