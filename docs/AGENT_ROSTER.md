@@ -25,7 +25,7 @@ Full digital marketing agency architecture. Phase 1 implements 7 core agents; re
 |---|-------|------|---------|
 | 8 | **ContentStrategist** | Content calendar, messaging, Tamil/English mix | ✅ Implemented |
 | 9 | **Copywriter** | Ad copy, landing pages, email sequences | 🔲 Stub |
-| 10 | **VisualDesigner** | Image/video briefs, Higgsfield photo-to-video | ✅ Implemented |
+| 10 | **VisualDesigner** | Image/video briefs, PixVerse photo-to-video | ✅ Implemented |
 | 11 | **SEOAgent** | Local SEO, Google Business, schema markup | ✅ Implemented |
 
 ## Lead & Sales
@@ -68,6 +68,6 @@ MarketAnalyst → CompetitorSpy → ContentStrategist → SEOAgent → VisualDes
 |-------|-----------|-------|
 | CRM, LeadQualification | crm-mcp | list_leads, update_lead, log_activity |
 | CompetitorSpy | browser-mcp | scrape_competitor, search_listings |
-| VisualDesigner | higgsfield-mcp | upload_site_photo, photo_to_video |
-| SocialMediaManager | social-mcp, higgsfield-mcp | publish_post, publish_video_to_social |
+| VisualDesigner | pixverse-mcp | upload_site_photo, photo_to_video |
+| SocialMediaManager | social-mcp, pixverse-mcp | publish_post, publish_video_to_social |
 | WhatsAppAgent | whatsapp-mcp | handle_message, score_lead |

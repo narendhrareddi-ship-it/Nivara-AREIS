@@ -43,11 +43,11 @@ Details: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
 |-------------|--------|
 | Supabase schema (10 tables + RLS) | ✅ |
 | Phase 2 migration (bot_logs, media_assets) | ✅ |
-| Docker Compose (n8n + ollama + postgres + dashboard + higgsfield) | ✅ |
+| Docker Compose (n8n + ollama + postgres + dashboard + pixverse) | ✅ |
 | N8N workflows (5) | ✅ |
 | LangGraph agents (12 of 20) | ✅ |
 | MCP servers (5) | ✅ |
-| Higgsfield photo-to-video → social | ✅ |
+| PixVerse photo-to-video → social | ✅ |
 | Documentation | ✅ |
 
 ## Project Structure
@@ -67,11 +67,11 @@ CEO · MarketAnalyst · CompetitorSpy · ContentStrategist · SEOAgent · Visual
 
 Full roster: **[docs/AGENT_ROSTER.md](docs/AGENT_ROSTER.md)**
 
-## Higgsfield Integration (Phase 2)
+## PixVerse Integration (Phase 2)
 
 Upload site photos → AI generates cinematic videos → auto-posts to social media.
 
-Guide: **[docs/PHASE2_HIGGSFIELD.md](docs/PHASE2_HIGGSFIELD.md)**
+Guide: **[docs/PHASE2_PIXVERSE.md](docs/PHASE2_PIXVERSE.md)**
 
 ## Stack (Free Only)
 
@@ -91,7 +91,7 @@ Paid upgrade path: **[docs/FREE_TIER_LIMITS.md](docs/FREE_TIER_LIMITS.md)**
 | N8N | http://localhost:5678 |
 | Ollama | http://localhost:11434 |
 | CRM MCP | http://localhost:8001 |
-| Higgsfield MCP | http://localhost:8006 |
+| PixVerse MCP | http://localhost:8006 |
 | Dashboard (AREIS) | http://localhost:8501 |
 | WhatsApp Mock | http://localhost:8004/webhook/message |
 

@@ -96,12 +96,12 @@ python mcp-servers/crm-mcp/server.py      # :8001
 python mcp-servers/browser-mcp/server.py  # :8002
 python mcp-servers/social-mcp/server.py   # :8003
 python mcp-servers/whatsapp-mcp/server.py  # :8004
-python mcp-servers/higgsfield-mcp/server.py  # :8006
+python mcp-servers/pixverse-mcp/server.py  # :8006
 ```
 
-## Step 7: Higgsfield Photo-to-Video (Phase 2)
+## Step 7: PixVerse Photo-to-Video (Phase 2)
 
-See **[PHASE2_HIGGSFIELD.md](PHASE2_HIGGSFIELD.md)** for site photo upload and social video posting.
+See **[PHASE2_PIXVERSE.md](PHASE2_PIXVERSE.md)** for site photo upload and social video posting.
 
 Test WhatsApp mock:
 
@@ -129,7 +129,7 @@ curl -X POST http://localhost:8004/webhook/message \
 - [ ] Agent orchestrator `/health` shows ollama: true
 - [ ] Lead webhook creates row in `leads` table
 - [ ] MCP servers respond on ports 8001-8004, 8006
-- [ ] Higgsfield MCP `/health` shows configured or mock mode
+- [ ] PixVerse MCP `/health` shows configured or mock mode
 - [ ] Dashboard MEDIA tab can upload photos
 
 ## Next: Phase 2

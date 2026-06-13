@@ -1,7 +1,7 @@
 {
-  "name": "nivara-higgsfield",
+  "name": "nivara-pixverse",
   "version": "0.1.0",
-  "description": "Higgsfield MCP — site photo upload, image-to-video generation, media asset management",
+  "description": "PixVerse MCP — site photo upload, image-to-video generation, media asset management",
   "tools": [
     {
       "name": "upload_site_photo",
@@ -19,7 +19,7 @@
     },
     {
       "name": "photo_to_video",
-      "description": "Generate a cinematic video from a site photo using Higgsfield AI",
+      "description": "Generate a cinematic video from a site photo using PixVerse AI",
       "inputSchema": {
         "type": "object",
         "properties": {
@@ -41,12 +41,12 @@
     },
     {
       "name": "get_media_status",
-      "description": "Check status of a media asset or Higgsfield job",
+      "description": "Check status of a media asset or PixVerse job",
       "inputSchema": {
         "type": "object",
         "properties": {
           "media_asset_id": { "type": "string" },
-          "request_id": { "type": "string" }
+          "video_id": { "type": "integer" }
         }
       }
     },

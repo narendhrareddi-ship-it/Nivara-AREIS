@@ -9,7 +9,7 @@ LangGraph-based agent orchestration for NIVARA REALTY digital marketing.
 - **CompetitorSpy** — Competitor intelligence
 - **ContentStrategist** — Content calendar and copy
 - **SEOAgent** — Local SEO strategy
-- **VisualDesigner** — Higgsfield photo-to-video generation
+- **VisualDesigner** — PixVerse photo-to-video generation
 - **SocialMediaManager** — Social posting with video support
 - **LeadQualification** — Lead scoring
 - **WhatsAppAgent** — Conversational lead nurturing

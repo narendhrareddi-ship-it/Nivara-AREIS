@@ -1,4 +1,4 @@
-"""Visual Designer Agent — transforms site photos into cinematic videos via Higgsfield."""
+"""Visual Designer Agent — transforms site photos into cinematic videos via PixVerse."""
 
 from __future__ import annotations
 
@@ -12,11 +12,11 @@ from nivara.agents.base import AgentState, BaseAgent
 
 class VisualDesignerAgent(BaseAgent):
     name = "VisualDesigner"
-    role = "Creates cinematic video content from site photos using Higgsfield AI"
+    role = "Creates cinematic video content from site photos using PixVerse AI"
 
     def __init__(self, llm: Any, crm: Any) -> None:
         super().__init__(llm, crm)
-        self.mcp_url = os.getenv("HIGGSFIELD_MCP_URL", "http://localhost:8006")
+        self.mcp_url = os.getenv("PIXVERSE_MCP_URL", "http://localhost:8006")
 
     async def run(self, state: AgentState) -> dict[str, Any]:
         region = state.get("region", "Chennai")
@@ -55,7 +55,7 @@ class VisualDesignerAgent(BaseAgent):
 
                 if content_strategy:
                     brief_prompt = await self.llm.generate(
-                        f"Based on this content strategy, write a 1-sentence Higgsfield video motion prompt "
+                        f"Based on this content strategy, write a 1-sentence PixVerse video motion prompt "
                         f"for a {region} property photo:\n{content_strategy[:600]}",
                         system=self.system_prompt(region),
                     )

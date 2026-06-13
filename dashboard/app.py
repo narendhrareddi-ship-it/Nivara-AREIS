@@ -136,7 +136,7 @@ BG = u'''<canvas id="bg" style="position:fixed;top:0;left:0;width:100%;height:10
 DB_HOST = os.environ.get("DB_HOST", "postgres")
 DB_PORT = int(os.environ.get("DB_PORT", "5432"))
 ORCH_URL = os.environ.get("ORCHESTRATOR_URL", "http://host.docker.internal:8005")
-HIGGSFIELD_URL = os.environ.get("HIGGSFIELD_MCP_URL", "http://host.docker.internal:8006")
+PIXVERSE_URL = os.environ.get("PIXVERSE_MCP_URL", "http://host.docker.internal:8006")
 
 def db():
     try: return psycopg2.connect(host=DB_HOST, port=DB_PORT, database="nivara", user="nivara", password="changeme", cursor_factory=RealDictCursor)
@@ -158,7 +158,7 @@ RE_AGENTS = [
     ("ContentStrategist", "Generating luxury property content", "Content calendar for Q3 luxury segment created"),
     ("SEOAgent", "Optimizing property pages for search", "12 property keywords now rank in top 20"),
     ("SocialMediaManager", "Scheduling property showcase posts", "Posts scheduled across Facebook, Instagram, LinkedIn"),
-    ("VisualDesigner", "Generating cinematic videos from site photos", "Higgsfield videos created for 2 property listings"),
+    ("VisualDesigner", "Generating cinematic videos from site photos", "PixVerse videos created for 2 property listings"),
     ("LeadQualification", "Scoring incoming property inquiries", "2 hot leads, 3 warm leads identified"),
     ("WhatsAppAgent", "Sending property recommendations", "Campaign delivered to 38 contacts, 12 replies"),
     ("AppointmentScheduler", "Scheduling site visits", "4 site visits confirmed for this week"),
@@ -384,9 +384,9 @@ with t3:
     else:
         st.info("No posts yet. Click SIMULATE POST to generate one.")
 
-# ═══ TAB 4 — MEDIA (Higgsfield Photo → Video) ═══
+# ═══ TAB 4 — MEDIA (PixVerse Photo → Video) ═══
 with t4:
-    st.markdown('<div class="section-label">Site Photo → Higgsfield Video → Social Post</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-label">Site Photo → PixVerse Video → Social Post</div>', unsafe_allow_html=True)
     import base64
     import requests as req
 
@@ -406,7 +406,7 @@ with t4:
                 data = {}
                 if project_id:
                     data["project_id"] = project_id
-                r = req.post(f"{HIGGSFIELD_URL}/upload", files=files, data=data, timeout=60)
+                r = req.post(f"{PIXVERSE_URL}/upload", files=files, data=data, timeout=60)
                 if r.ok:
                     result = r.json()
                     st.session_state["last_media_asset"] = result.get("result", {})
@@ -438,9 +438,9 @@ with t4:
                 st.error("Upload a site photo first.")
             else:
                 try:
-                    with st.spinner("Generating video with Higgsfield (may take 1-3 min)..."):
+                    with st.spinner("Generating video with PixVerse (may take 1-3 min)..."):
                         r = req.post(
-                            f"{HIGGSFIELD_URL}/call",
+                            f"{PIXVERSE_URL}/call",
                             json={
                                 "name": "photo_to_video",
                                 "arguments": {

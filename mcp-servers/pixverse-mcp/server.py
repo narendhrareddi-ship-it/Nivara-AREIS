@@ -1,4 +1,4 @@
-"""NIVARA Higgsfield MCP Server — site photo upload + image-to-video + social publish."""
+"""NIVARA PixVerse MCP Server — site photo upload + image-to-video + social publish."""
 
 from __future__ import annotations
 
@@ -24,9 +24,9 @@ logger = logging.getLogger(__name__)
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "agents", "src"))
 from nivara.db.supabase_client import SupabaseCRM
-from nivara.integrations.higgsfield_client import HiggsfieldClient
+from nivara.integrations.pixverse_client import PixverseClient
 
-app = FastAPI(title="NIVARA Higgsfield MCP", version="0.1.0")
+app = FastAPI(title="NIVARA PixVerse MCP", version="0.1.0")
 
 MEDIA_DIR = Path(os.getenv("MEDIA_STORAGE_PATH", "media_storage"))
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
@@ -38,8 +38,8 @@ def _get_crm() -> SupabaseCRM:
     return SupabaseCRM()
 
 
-def _get_higgsfield() -> HiggsfieldClient:
-    return HiggsfieldClient()
+def _get_pixverse() -> PixverseClient:
+    return PixverseClient()
 
 
 def _public_url(filename: str) -> str:
@@ -51,6 +51,20 @@ def _save_file(content: bytes, filename: str) -> str:
     path = MEDIA_DIR / safe_name
     path.write_bytes(content)
     return safe_name
+
+
+def _read_local_image(filename: str) -> tuple[bytes, str] | None:
+    path = MEDIA_DIR / filename
+    if not path.exists():
+        return None
+    suffix = path.suffix.lower()
+    mime = {
+        ".jpg": "image/jpeg",
+        ".jpeg": "image/jpeg",
+        ".png": "image/png",
+        ".webp": "image/webp",
+    }.get(suffix, "image/jpeg")
+    return path.read_bytes(), mime
 
 
 class ToolCallRequest(BaseModel):
@@ -94,12 +108,12 @@ async def _publish_to_social(
 
 @app.get("/health")
 async def health() -> dict[str, Any]:
-    hf = _get_higgsfield()
+    pv = _get_pixverse()
     return {
         "status": "ok",
-        "server": "higgsfield-mcp",
-        "higgsfield_configured": hf.is_configured(),
-        "higgsfield_mock": hf.mock_mode,
+        "server": "pixverse-mcp",
+        "pixverse_configured": pv.is_configured(),
+        "pixverse_mock": pv.mock_mode,
         "media_storage": str(MEDIA_DIR),
     }
 
@@ -153,7 +167,7 @@ async def upload_photo(
 async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
     args = request.arguments
     crm = _get_crm()
-    hf = _get_higgsfield()
+    pv = _get_pixverse()
 
     match request.name:
         case "upload_site_photo":
@@ -184,6 +198,9 @@ async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
             image_url = args.get("image_url")
             media_asset_id = args.get("media_asset_id")
             project_id = args.get("project_id")
+            image_content: bytes | None = None
+            mime_type = "image/jpeg"
+            filename = "photo.jpg"
 
             if media_asset_id and crm.is_configured():
                 asset = crm.get_media_asset(media_asset_id)
@@ -191,8 +208,13 @@ async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
                     raise HTTPException(404, f"Media asset not found: {media_asset_id}")
                 image_url = asset.get("source_url")
                 project_id = project_id or asset.get("project_id")
+                if asset.get("filename"):
+                    local = _read_local_image(asset["filename"])
+                    if local:
+                        image_content, mime_type = local
+                        filename = asset["filename"]
 
-            if not image_url:
+            if not image_content and not image_url:
                 raise HTTPException(400, "image_url or media_asset_id required")
 
             video_record: dict[str, Any] = {
@@ -200,7 +222,7 @@ async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
                 "status": "generating",
                 "source_url": image_url,
                 "prompt": prompt,
-                "provider": "higgsfield",
+                "provider": "pixverse",
                 "metadata": {"source_image": image_url},
             }
             if project_id:
@@ -214,8 +236,11 @@ async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
                 video_asset_id = video_asset["id"]
 
             try:
-                result = await hf.generate_video(
-                    image_url=image_url,
+                result = await pv.generate_video(
+                    image_content=image_content,
+                    image_url=image_url if not image_content else None,
+                    filename=filename,
+                    mime_type=mime_type,
                     prompt=prompt,
                     duration=args.get("duration", 5),
                 )
@@ -223,10 +248,11 @@ async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
                 update_data = {
                     "status": "completed",
                     "output_url": video_url,
-                    "provider_job_id": result.get("request_id"),
+                    "provider_job_id": str(result.get("video_id", "")),
                     "metadata": {
                         "source_image": image_url,
-                        "higgsfield_response": result.get("raw", {}),
+                        "pixverse_response": result.get("raw", {}),
+                        "img_id": result.get("img_id"),
                         "mock": result.get("mock", False),
                     },
                 }
@@ -251,13 +277,16 @@ async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
                     "result": {
                         "media_asset": video_asset,
                         "video_url": video_url,
-                        "request_id": result.get("request_id"),
+                        "video_id": result.get("video_id"),
                         "publish_results": publish_results,
                     }
                 }
             except Exception as exc:
                 if crm.is_configured() and video_asset_id:
-                    crm.update_media_asset(video_asset_id, {"status": "failed", "metadata": {"error": str(exc)}})
+                    crm.update_media_asset(
+                        video_asset_id,
+                        {"status": "failed", "metadata": {"error": str(exc)}},
+                    )
                 raise HTTPException(500, f"Video generation failed: {exc}") from exc
 
         case "get_media_status":
@@ -267,15 +296,15 @@ async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
                     raise HTTPException(404, "Media asset not found")
                 job_id = asset.get("provider_job_id")
                 if job_id and asset.get("status") == "generating":
-                    status = await hf.get_request_status(job_id)
+                    status = await pv.get_video_status(int(job_id))
                     return {"result": {"asset": asset, "job_status": status}}
                 return {"result": {"asset": asset}}
 
-            if args.get("request_id"):
-                status = await hf.get_request_status(args["request_id"])
+            if args.get("video_id"):
+                status = await pv.get_video_status(int(args["video_id"]))
                 return {"result": status}
 
-            raise HTTPException(400, "media_asset_id or request_id required")
+            raise HTTPException(400, "media_asset_id or video_id required")
 
         case "list_project_media":
             if not crm.is_configured():
@@ -314,5 +343,5 @@ async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    port = int(os.getenv("HIGGSFIELD_MCP_PORT", "8006"))
+    port = int(os.getenv("PIXVERSE_MCP_PORT", "8006"))
     uvicorn.run(app, host="0.0.0.0", port=port)
