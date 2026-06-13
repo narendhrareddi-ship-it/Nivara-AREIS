@@ -23,4 +23,4 @@ serverPort = 8501
 fastReruns = true
 
 [client]
-showEmailPrompt = false
+showEmailPrompt = false# trigger streamlit redeploy 20260613T123938Z
