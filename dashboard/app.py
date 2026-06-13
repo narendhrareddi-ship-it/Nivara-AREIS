@@ -14,25 +14,19 @@ from config import (
     ORCH_URL, VEO_URL, OLLAMA_URL, DEFAULT_REGION,
     connection_config, password_is_placeholder,
     ENABLE_DASHBOARD_SIMULATION, orchestrator_headers,
+    AUTO_SYNC_PIPELINE, AUTO_SYNC_INTERVAL_MINUTES,
+    GROQ_API_KEY, GEMINI_API_KEY,
+)
+from pipeline_sync import (
+    PIPELINE_AGENTS,
+    LEGACY_12_AGENTS,
+    auto_sync_pipeline,
+    latest_cycle_completed,
+    needs_immediate_sync,
 )
 from safe_data import val as _val, text as _text, fmt_dt as _fmt_dt, trunc as _trunc
 
-APP_BUILD = "2026-06-13i"
-
-# 20-agent pipeline order (single source of truth)
-PIPELINE_AGENTS = [
-    "MarketAnalyst", "RegulatoryWatch", "LocationScout", "CompetitorSpy", "CMO",
-    "ContentStrategist", "Copywriter", "SEOAgent", "VisualDesigner", "SocialMediaManager",
-    "PaidAdsManager", "LeadQualification", "SalesCoach", "WhatsAppAgent", "EmailMarketer",
-    "AppointmentScheduler", "CRM", "Analytics", "COO", "CEO",
-]
-
-# Pre-Phase-3 orchestrator only ran these 12 agents
-LEGACY_12_AGENTS = {
-    "MarketAnalyst", "CompetitorSpy", "ContentStrategist", "SEOAgent", "VisualDesigner",
-    "SocialMediaManager", "LeadQualification", "WhatsAppAgent", "AppointmentScheduler",
-    "CRM", "Analytics", "CEO",
-}
+APP_BUILD = "2026-06-13j"
 
 AGENT_SIM_DETAILS: dict[str, tuple[str, str]] = {
     "MarketAnalyst": ("Analyzing Bangalore property market trends", "Market report: Whitefield prices up 9% YoY"),
@@ -198,7 +192,43 @@ if not _db_ok:
 elif _db_ok and ENABLE_DASHBOARD_SIMULATION:
     simulate_activity()
 
+_pipeline_sync_status: dict | None = None
+if _db_ok and AUTO_SYNC_PIPELINE and not ENABLE_DASHBOARD_SIMULATION:
+    _should_sync, _sync_reason = needs_immediate_sync(q)
+    _session_cooldown = st.session_state.get("_pipeline_sync_at")
+    _cooldown_ok = (
+        not _session_cooldown
+        or (datetime.now() - _session_cooldown).total_seconds() > 300
+    )
+    if _should_sync and _cooldown_ok:
+        st.session_state["_pipeline_sync_at"] = datetime.now()
+        with st.spinner(f"Auto-syncing 20-agent pipeline ({_sync_reason})…"):
+            _pipeline_sync_status = auto_sync_pipeline(
+                q,
+                db_host=DB_HOST,
+                db_port=DB_PORT,
+                db_name=DB_NAME,
+                db_user=DB_USER,
+                db_password=DB_PASSWORD,
+                default_region=DEFAULT_REGION,
+                orch_url=ORCH_URL,
+                orch_headers=orchestrator_headers(),
+                interval_minutes=AUTO_SYNC_INTERVAL_MINUTES,
+                prefer_direct=True,
+                groq_api_key=GROQ_API_KEY,
+                gemini_api_key=GEMINI_API_KEY,
+            )
+
 # ── Hero header ──
+if _pipeline_sync_status and _pipeline_sync_status.get("synced"):
+    st.success(
+        f"Pipeline auto-synced: **{_pipeline_sync_status['agents_completed']}/"
+        f"{_pipeline_sync_status['agents_expected']}** agents "
+        f"via {_pipeline_sync_status.get('mode', 'direct')} mode."
+    )
+elif _pipeline_sync_status and _pipeline_sync_status.get("error"):
+    st.warning(f"Pipeline auto-sync attempted but failed: {_pipeline_sync_status['error'][:120]}")
+
 h1, h2 = st.columns([3, 1])
 with h1:
     st.markdown(
@@ -692,12 +722,14 @@ with t7:
         f"| Password loaded | **{'Yes' if cfg['password_set'] else 'NO — still placeholder'}** |\n"
         f"| Supabase URL set | {'Yes' if cfg['supabase_url_set'] else 'No'} |\n"
         f"| Build | `{APP_BUILD}` |\n"
-        f"| Demo simulation | **{'On' if ENABLE_DASHBOARD_SIMULATION else 'Off (production)'}** |"
+        f"| Demo simulation | **{'On' if ENABLE_DASHBOARD_SIMULATION else 'Off (production)'}** |\n"
+        f"| Auto pipeline sync | **{'On' if AUTO_SYNC_PIPELINE else 'Off'}** (every {AUTO_SYNC_INTERVAL_MINUTES} min via cron) |"
     )
-    if not ENABLE_DASHBOARD_SIMULATION:
+    if AUTO_SYNC_PIPELINE:
+        done_now = latest_cycle_completed(q)
         st.caption(
-            "Live mode: dashboard shows real Supabase data only. "
-            "Set `ENABLE_DASHBOARD_SIMULATION = true` in secrets for demo data."
+            f"Pipeline status: {len(done_now)}/{len(PIPELINE_AGENTS)} agents in latest cycle. "
+            "Incomplete pipelines auto-sync on dashboard load; stale pipelines sync every 6h via GitHub Actions."
         )
     if cfg["password_placeholder"]:
         st.warning(

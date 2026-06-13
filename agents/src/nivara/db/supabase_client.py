@@ -3,11 +3,14 @@
 from __future__ import annotations
 
 import logging
+import os
 from typing import Any
 from psycopg2 import pool, extras
 from nivara.config import settings
 
 logger = logging.getLogger(__name__)
+
+_SSLMODE = os.getenv("DB_SSLMODE", "prefer")
 
 
 class SupabaseCRM:
@@ -33,7 +36,8 @@ class SupabaseCRM:
                     password=self._password,
                     host=self._host,
                     port=self._port,
-                    database=self._dbname
+                    database=self._dbname,
+                    sslmode=_SSLMODE,
                 )
             except Exception as e:
                 logger.error("Failed to initialize Postgres pool: %s", e)

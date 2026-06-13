@@ -1,1 +1,3 @@
 -r dashboard/requirements.txt
+# Agents package for in-process pipeline sync on Streamlit Cloud
+-e ./agents

@@ -173,11 +173,9 @@ class AgentOrchestrator:
             "messages": [],
         }
 
-        if agents:
-            return await self._run_subset(initial_state, agents)
-
-        result: AgentState = await self.graph.ainvoke(initial_state)
-        return result
+        # Always run the full ordered pipeline by default — guarantees 20/20 bot_logs.
+        names = agents if agents else PIPELINE_ORDER
+        return await self._run_subset(initial_state, names)
 
     async def _run_subset(
         self,

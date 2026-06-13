@@ -50,6 +50,10 @@ def _from_secrets_nested(key: str) -> str | None:
         "VEO_MCP_URL": [("services", "veo_mcp_url"), ("veo", "url")],
         "OLLAMA_BASE_URL": [("ollama", "url"), ("services", "ollama_url")],
         "ENABLE_DASHBOARD_SIMULATION": [("dashboard", "simulate"), ("features", "simulate_activity")],
+        "AUTO_SYNC_PIPELINE": [("dashboard", "auto_sync"), ("features", "auto_sync_pipeline")],
+        "AUTO_SYNC_INTERVAL_MINUTES": [("dashboard", "sync_interval_minutes")],
+        "GROQ_API_KEY": [("llm", "groq_api_key"), ("groq", "api_key")],
+        "GEMINI_API_KEY": [("llm", "gemini_api_key"), ("gemini", "api_key")],
     }
     for section, field in aliases.get(key, []):
         try:
@@ -120,6 +124,13 @@ ORCHESTRATOR_API_KEY = _get("ORCHESTRATOR_API_KEY", "")
 
 _sim_flag = _get("ENABLE_DASHBOARD_SIMULATION", "false").strip().lower()
 ENABLE_DASHBOARD_SIMULATION = _sim_flag in ("1", "true", "yes", "on")
+
+_auto_flag = _get("AUTO_SYNC_PIPELINE", "true").strip().lower()
+AUTO_SYNC_PIPELINE = _auto_flag not in ("0", "false", "no", "off")
+
+AUTO_SYNC_INTERVAL_MINUTES = int(_get("AUTO_SYNC_INTERVAL_MINUTES", "360") or "360")
+GROQ_API_KEY = _get("GROQ_API_KEY", "")
+GEMINI_API_KEY = _get("GEMINI_API_KEY", "")
 
 
 def orchestrator_headers() -> dict[str, str]:

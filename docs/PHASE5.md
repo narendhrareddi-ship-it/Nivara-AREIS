@@ -12,6 +12,33 @@ Phase 5 closes the gap between the 20-agent prototype and a trustworthy producti
 | **API auth** | Optional `ORCHESTRATOR_API_KEY` + `X-API-Key` header on `/orchestrate` |
 | **N8N workflows** | Bangalore region, orchestrator port 8000, 20-agent pipeline |
 | **Render** | LLM + auth env vars in `render.yaml` |
+| **Auto pipeline sync** | Dashboard + GitHub Actions keep `bot_logs` at 20/20 automatically |
+
+## Automatic Pipeline Sync (permanent 20/20 fix)
+
+Three layers ensure `bot_logs` always reflects all 20 agents:
+
+1. **Orchestrator** — every `/orchestrate` call runs `PIPELINE_ORDER` sequentially (no partial 12-agent graph)
+2. **Dashboard** — on load, if pipeline is incomplete, runs all 20 agents **in-process** (bypasses stale Render)
+3. **GitHub Actions** — `.github/workflows/pipeline-sync.yml` runs every 6 hours
+
+```toml
+# Streamlit secrets (enabled by default)
+AUTO_SYNC_PIPELINE = "true"
+AUTO_SYNC_INTERVAL_MINUTES = "360"
+GROQ_API_KEY = "..."   # or GEMINI_API_KEY — required for cloud LLM
+```
+
+Manual sync:
+
+```bash
+python scripts/auto-sync-pipeline.py          # sync if incomplete/stale
+python scripts/auto-sync-pipeline.py --force  # always run full pipeline
+python scripts/reset-pipeline-logs.py         # clear logs first (optional)
+```
+
+Add these GitHub repository secrets for the scheduled workflow:
+`DB_HOST`, `DB_USER`, `DB_PASSWORD`, `GROQ_API_KEY` (or `GEMINI_API_KEY`).
 
 ## Cloud LLM Setup (P0)
 
