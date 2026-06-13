@@ -22,7 +22,7 @@ NIVARA REALTY Phase 1 uses **zero paid services**. This document maps what's fre
 | LinkedIn/X/YouTube | social-mcp mock | API access restricted/paid |
 | Google Ads | analytics_collector mock data | Google Ads API needs developer token + spend |
 | Ad performance | Random mock metrics in N8N | No ad platform connected |
-| Image/video generation | PixVerse MCP (mock mode free) | PixVerse Platform API for photo-to-video |
+| Image/video generation | Gemini Veo MCP (mock mode free) | Google Gemini Veo API |
 
 ## Supabase Free Tier Watchouts
 
@@ -44,7 +44,7 @@ NIVARA REALTY Phase 1 uses **zero paid services**. This document maps what's fre
 | Service | Purpose | Est. Cost |
 |---------|---------|-----------|
 | Domain + hosting | Landing page + media URLs | $10-15/mo |
-| PixVerse Platform API | Photo-to-video generation | Usage-based (API credits) |
+| Google Gemini Veo API | Photo-to-video generation | Usage-based (Google AI credits) |
 | Resend or Mailgun free tier | Email campaigns | Free up to limits |
 | Meta WhatsApp Cloud API | Real WhatsApp | Free tier: 1000 conversations/mo |
 

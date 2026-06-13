@@ -1,4 +1,4 @@
-"""Social Media Manager Agent — coordinates FB/IG/LinkedIn posting with PixVerse videos."""
+"""Social Media Manager Agent — coordinates FB/IG/LinkedIn posting with Gemini Veo videos."""
 
 from __future__ import annotations
 
@@ -19,7 +19,7 @@ class SocialMediaManagerAgent(BaseAgent):
     def __init__(self, llm: Any, crm: Any) -> None:
         super().__init__(llm, crm)
         self.mcp_url = os.getenv("SOCIAL_MCP_URL", "http://localhost:8003")
-        self.pixverse_url = os.getenv("PIXVERSE_MCP_URL", "http://localhost:8006")
+        self.veo_url = os.getenv("VEO_MCP_URL", "http://localhost:8006")
 
     def _parse_platform_posts(self, social_plan: str) -> list[dict[str, str]]:
         posts = []
@@ -54,7 +54,7 @@ class SocialMediaManagerAgent(BaseAgent):
         if media_asset_id:
             try:
                 response = await client.post(
-                    f"{self.pixverse_url}/call",
+                    f"{self.veo_url}/call",
                     json={
                         "name": "publish_video_to_social",
                         "arguments": {
@@ -66,7 +66,7 @@ class SocialMediaManagerAgent(BaseAgent):
                     },
                 )
                 if response.status_code == 200:
-                    published.append(f"Published video {media_asset_id} via pixverse-mcp")
+                    published.append(f"Published video {media_asset_id} via veo-mcp")
                     return published
             except Exception:
                 pass

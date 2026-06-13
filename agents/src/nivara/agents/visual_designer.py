@@ -1,4 +1,4 @@
-"""Visual Designer Agent — transforms site photos into cinematic videos via PixVerse."""
+"""Visual Designer Agent — transforms site photos into cinematic videos via Gemini Veo."""
 
 from __future__ import annotations
 
@@ -12,11 +12,11 @@ from nivara.agents.base import AgentState, BaseAgent
 
 class VisualDesignerAgent(BaseAgent):
     name = "VisualDesigner"
-    role = "Creates cinematic video content from site photos using PixVerse AI"
+    role = "Creates cinematic video content from site photos using Google Gemini Veo"
 
     def __init__(self, llm: Any, crm: Any) -> None:
         super().__init__(llm, crm)
-        self.mcp_url = os.getenv("PIXVERSE_MCP_URL", "http://localhost:8006")
+        self.mcp_url = os.getenv("VEO_MCP_URL", "http://localhost:8006")
 
     async def run(self, state: AgentState) -> dict[str, Any]:
         region = state.get("region", "Chennai")
@@ -45,7 +45,7 @@ class VisualDesignerAgent(BaseAgent):
         results = []
         generated_videos: list[dict[str, Any]] = []
 
-        async with httpx.AsyncClient(timeout=600.0) as client:
+        async with httpx.AsyncClient(timeout=900.0) as client:
             for asset in media_assets[:3]:
                 asset_id = str(asset.get("id", ""))
                 prompt = asset.get("prompt") or (
@@ -55,7 +55,7 @@ class VisualDesignerAgent(BaseAgent):
 
                 if content_strategy:
                     brief_prompt = await self.llm.generate(
-                        f"Based on this content strategy, write a 1-sentence PixVerse video motion prompt "
+                        f"Based on this content strategy, write a 1-sentence Veo video motion prompt "
                         f"for a {region} property photo:\n{content_strategy[:600]}",
                         system=self.system_prompt(region),
                     )
@@ -68,10 +68,8 @@ class VisualDesignerAgent(BaseAgent):
                             "name": "photo_to_video",
                             "arguments": {
                                 "media_asset_id": asset_id,
-                                "image_url": asset.get("source_url"),
                                 "prompt": prompt,
                                 "project_id": project_id or asset.get("project_id"),
-                                "duration": 5,
                             },
                         },
                     )

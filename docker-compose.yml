@@ -73,25 +73,24 @@ services:
       - DB_HOST=postgres
       - DB_PORT=5432
       - ORCHESTRATOR_URL=http://host.docker.internal:8005
-      - PIXVERSE_MCP_URL=http://host.docker.internal:8006
+      - VEO_MCP_URL=http://host.docker.internal:8006
     networks:
       - nivara-net
     depends_on:
       - postgres
 
-  pixverse-mcp:
+  veo-mcp:
     image: python:3.11-slim
-    container_name: nivara-pixverse-mcp
+    container_name: nivara-veo-mcp
     restart: unless-stopped
     working_dir: /app
     ports:
       - "8006:8006"
     environment:
-      - PIXVERSE_MCP_PORT=8006
-      - PIXVERSE_API_KEY=${PIXVERSE_API_KEY:-}
-      - PIXVERSE_MOCK=${PIXVERSE_MOCK:-true}
-      - PIXVERSE_MODEL=${PIXVERSE_MODEL:-v5.5}
-      - PIXVERSE_QUALITY=${PIXVERSE_QUALITY:-720p}
+      - VEO_MCP_PORT=8006
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - VEO_MOCK=${VEO_MOCK:-true}
+      - VEO_MODEL=${VEO_MODEL:-veo-3.1-generate-preview}
       - MEDIA_STORAGE_PATH=/app/media_storage
       - MEDIA_PUBLIC_BASE_URL=${MEDIA_PUBLIC_BASE_URL:-http://localhost:8006/media}
       - SOCIAL_MCP_URL=http://host.docker.internal:8003
@@ -102,11 +101,11 @@ services:
       - DB_NAME=nivara
     volumes:
       - ./agents/src:/app/agents/src:ro
-      - ./mcp-servers/pixverse-mcp:/app/mcp-servers/pixverse-mcp:ro
+      - ./mcp-servers/veo-mcp:/app/mcp-servers/veo-mcp:ro
       - media_storage:/app/media_storage
     command: >
       bash -c "pip install fastapi uvicorn python-dotenv httpx psycopg2-binary python-multipart &&
-      python mcp-servers/pixverse-mcp/server.py"
+      python mcp-servers/veo-mcp/server.py"
     networks:
       - nivara-net
     depends_on:

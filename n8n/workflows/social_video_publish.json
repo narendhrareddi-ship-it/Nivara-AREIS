@@ -2,15 +2,7 @@
   "name": "social_video_publish",
   "nodes": [
     {
-      "parameters": {
-        "rule": {
-          "interval": [
-            {
-              "triggerAtHour": 10
-            }
-          ]
-        }
-      },
+      "parameters": {"rule": {"interval": [{"triggerAtHour": 10}]}},
       "id": "trigger-daily-10am",
       "name": "Daily 10 AM Trigger",
       "type": "n8n-nodes-base.scheduleTrigger",
@@ -37,14 +29,14 @@
         "jsonBody": "={\n  \"name\": \"publish_video_to_social\",\n  \"arguments\": {\n    \"media_asset_id\": \"{{ $json.id }}\",\n    \"caption\": \"Discover luxury living with NIVARA REALTY 🏙️ #ChennaiRealEstate\",\n    \"platforms\": [\"instagram\", \"facebook\"],\n    \"project_id\": \"{{ $json.project_id }}\"\n  }\n}"
       },
       "id": "publish-to-social",
-      "name": "Publish via PixVerse MCP",
+      "name": "Publish via Veo MCP",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [720, 300]
     },
     {
       "parameters": {
-        "content": "## Social Video Publish Pipeline\n\nRuns daily at 10 AM IST. Publishes completed PixVerse videos to social platforms.\n\nRequires: pixverse-mcp (:8006), social-mcp (:8003), Postgres with media_assets table."
+        "content": "## Social Video Publish Pipeline\n\nRuns daily at 10 AM IST. Publishes completed Gemini Veo videos to social platforms.\n\nRequires: veo-mcp (:8006), social-mcp (:8003), Postgres with media_assets table."
       },
       "id": "sticky-note",
       "name": "Note",
@@ -54,14 +46,8 @@
     }
   ],
   "connections": {
-    "Daily 10 AM Trigger": {
-      "main": [[{"node": "Fetch Ready Videos", "type": "main", "index": 0}]]
-    },
-    "Fetch Ready Videos": {
-      "main": [[{"node": "Publish via PixVerse MCP", "type": "main", "index": 0}]]
-    }
+    "Daily 10 AM Trigger": {"main": [[{"node": "Fetch Ready Videos", "type": "main", "index": 0}]]},
+    "Fetch Ready Videos": {"main": [[{"node": "Publish via Veo MCP", "type": "main", "index": 0}]]}
   },
-  "settings": {
-    "executionOrder": "v1"
-  }
+  "settings": {"executionOrder": "v1"}
 }

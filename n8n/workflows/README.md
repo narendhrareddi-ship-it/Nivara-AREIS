@@ -10,7 +10,7 @@ Export-ready workflow JSON files for NIVARA REALTY Phase 1.
 | `lead_intake_webhook.json` | POST webhook | Capture leads from forms/ads |
 | `crm_sync.json` | Hourly | Sync new leads to CRM agents |
 | `analytics_collector.json` | Daily 11 PM IST | Collect mock ad performance data |
-| `social_video_publish.json` | Daily 10 AM IST | Publish PixVerse videos to social |
+| `social_video_publish.json` | Daily 10 AM IST | Publish Gemini Veo videos to social |
 
 ## Import Instructions
 

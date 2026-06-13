@@ -1,7 +1,7 @@
 {
-  "name": "nivara-pixverse",
+  "name": "nivara-veo",
   "version": "0.1.0",
-  "description": "PixVerse MCP — site photo upload, image-to-video generation, media asset management",
+  "description": "Gemini Veo MCP — site photo upload, image-to-video generation, media asset management",
   "tools": [
     {
       "name": "upload_site_photo",
@@ -19,12 +19,11 @@
     },
     {
       "name": "photo_to_video",
-      "description": "Generate a cinematic video from a site photo using PixVerse AI",
+      "description": "Generate a cinematic video from a site photo using Gemini Veo",
       "inputSchema": {
         "type": "object",
         "properties": {
           "media_asset_id": { "type": "string" },
-          "image_url": { "type": "string" },
           "prompt": { "type": "string" },
           "project_id": { "type": "string" },
           "duration": { "type": "integer", "default": 5 },
@@ -41,12 +40,12 @@
     },
     {
       "name": "get_media_status",
-      "description": "Check status of a media asset or PixVerse job",
+      "description": "Check status of a media asset or Veo operation",
       "inputSchema": {
         "type": "object",
         "properties": {
           "media_asset_id": { "type": "string" },
-          "video_id": { "type": "integer" }
+          "operation_name": { "type": "string" }
         }
       }
     },
@@ -69,10 +68,7 @@
         "type": "object",
         "properties": {
           "media_asset_id": { "type": "string" },
-          "platforms": {
-            "type": "array",
-            "items": { "type": "string" }
-          },
+          "platforms": { "type": "array", "items": { "type": "string" } },
           "caption": { "type": "string" },
           "project_id": { "type": "string" }
         },

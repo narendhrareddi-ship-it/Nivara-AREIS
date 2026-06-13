@@ -34,7 +34,7 @@ flowchart TB
         BR_MCP[Browser MCP :8002]
         SOC_MCP[Social MCP :8003]
         WA_MCP[WhatsApp MCP :8004]
-        PV_MCP[PixVerse MCP :8006]
+        VEO_MCP[Gemini Veo MCP :8006]
     end
 
     subgraph Data["Data Layer"]
@@ -61,8 +61,8 @@ flowchart TB
     CRM --> CRM_MCP
     AN --> CRM_MCP
     CT --> SOC_MCP
-    VD --> PV_MCP
-    PV_MCP --> SOC_MCP
+    VD --> VEO_MCP
+    VEO_MCP --> SOC_MCP
 
     CRM_MCP --> SB
     SOC_MCP --> SB
@@ -77,7 +77,7 @@ flowchart TB
 | **N8N** | Scheduled workflows, webhooks | 5 importable workflows |
 | **LangGraph** | Multi-agent orchestration | 12 agents + CEO synthesis |
 | **Ollama** | Local LLM inference | Llama 3.2 default |
-| **PixVerse MCP** | Photo-to-video + social publish | pixverse-mcp :8006 |
+| **Gemini Veo MCP** | Photo-to-video + social publish | veo-mcp :8006 |
 | **MCP Servers** | Tool interfaces for agents/Cursor | 5 servers |
 | **Docker Compose** | n8n + ollama + postgres + dashboard | Ready |
 
