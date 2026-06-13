@@ -9,17 +9,19 @@ import plotly.express as px
 import random
 
 from theme import CSS, LOGO_SVG, CHART_COLORS, RED, RED_DARK, NAVY, GOLD, SLATE, plotly_layout, stat_card, market_chip, post_card
+from config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, ORCH_URL, VEO_URL, OLLAMA_URL
 
 st.set_page_config(page_title="NIVARA — AREIS", page_icon="🏢", layout="wide", initial_sidebar_state="collapsed")
 
-DB_HOST = os.environ.get("DB_HOST", "localhost")
-DB_PORT = int(os.environ.get("DB_PORT", "5432"))
-ORCH_URL = os.environ.get("ORCHESTRATOR_URL", "http://localhost:8000")
-VEO_URL = os.environ.get("VEO_MCP_URL", "http://localhost:8006")
-
 def db():
-    try: return psycopg2.connect(host=DB_HOST, port=DB_PORT, database="nivara", user="nivara", password="changeme", cursor_factory=RealDictCursor)
-    except: return None
+    try:
+        return psycopg2.connect(
+            host=DB_HOST, port=DB_PORT, database=DB_NAME,
+            user=DB_USER, password=DB_PASSWORD,
+            cursor_factory=RealDictCursor,
+        )
+    except Exception:
+        return None
 
 def q(sql, p=None, one=False):
     c = db()
@@ -544,7 +546,7 @@ with t7:
         except Exception:
             st.markdown(status_card("Orchestrator", None), unsafe_allow_html=True)
     with s3:
-        ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
+        ollama_url = OLLAMA_URL
         try:
             import requests
             r = requests.get(f"{ollama_url}/api/tags", timeout=5)

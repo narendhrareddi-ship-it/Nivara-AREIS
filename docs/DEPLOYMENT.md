@@ -1,117 +1,132 @@
-# Permanent Dashboard Deployment
+# Permanent Dashboard — Streamlit Community Cloud
 
-The NIVARA dashboard is a **Streamlit** Python app. It needs a persistent server with WebSocket support.
+The NIVARA dashboard is hosted permanently on **[Streamlit Community Cloud](https://share.streamlit.io)**.
 
-## Can I use Vercel?
+## Why Streamlit Cloud?
 
-**No — not for the current Streamlit dashboard.**
-
-| Platform | Works with Streamlit? | Why |
-|----------|----------------------|-----|
-| **Vercel** | No | Serverless functions timeout; no persistent WebSockets |
-| **Render** | Yes | Long-running process, WebSockets, custom domain |
-| **Streamlit Community Cloud** | Yes | Built for Streamlit, free tier, GitHub deploy |
-| **Railway / Fly.io** | Yes | Container hosting with persistent processes |
-| **Docker on VPS** | Yes | Full control |
-
-### If you must use Vercel
-
-You would need to **rebuild the dashboard as Next.js** (React frontend + API routes calling your orchestrator/MCP backends). That is a separate project — not a config change.
-
-**Recommended Vercel stack (future):**
-- Next.js 15 + Tailwind on Vercel (frontend)
-- API routes proxy to Render/Railway-hosted MCP servers
-- Supabase for database (already in project)
+- Built for Streamlit apps (WebSockets, persistent sessions)
+- Free tier with a **permanent URL** (`https://your-app.streamlit.app`)
+- Auto-redeploys on every `git push`
+- No tunnels, no port forwarding, no expiring links
 
 ---
 
-## Option 1 — Streamlit Community Cloud (fastest permanent URL)
+## Deploy in 5 steps
 
-1. Push this repo to GitHub
-2. Go to [share.streamlit.io](https://share.streamlit.io)
-3. Connect repo → set **Main file path**: `dashboard/app.py`
-4. Add secrets in the dashboard:
+### 1. Push this repo to GitHub
+
+Already on: `narendhrareddi-ship-it/Nivara-AREIS`
+
+### 2. Open Streamlit Community Cloud
+
+Go to [share.streamlit.io](https://share.streamlit.io) → sign in with GitHub.
+
+### 3. Create a new app
+
+| Setting | Value |
+|---------|-------|
+| Repository | `narendhrareddi-ship-it/Nivara-AREIS` |
+| Branch | `main` (or your feature branch) |
+| Main file path | `dashboard/app.py` |
+
+### 4. Add secrets
+
+In the app → **Settings → Secrets**, paste (edit values):
 
 ```toml
-DB_HOST = "your-db-host"
+DB_HOST = "your-supabase-or-render-db-host"
 DB_PORT = "5432"
+DB_NAME = "nivara"
 DB_USER = "nivara"
 DB_PASSWORD = "your-password"
-ORCHESTRATOR_URL = "https://your-orchestrator.onrender.com"
-VEO_MCP_URL = "https://your-veo-mcp.onrender.com"
+
+ORCHESTRATOR_URL = "https://your-orchestrator-host"
+VEO_MCP_URL = "https://your-veo-mcp-host"
+OLLAMA_BASE_URL = "https://your-ollama-host"
 ```
 
-5. Deploy → you get a permanent URL like `https://nivara-areis.streamlit.app`
+Template: [`dashboard/.streamlit/secrets.toml.example`](../dashboard/.streamlit/secrets.toml.example)
 
-**Pros:** Free, zero DevOps, auto-redeploy on git push  
-**Cons:** Backend services (Postgres, MCP) must be reachable from the internet
+### 5. Deploy
 
----
+Click **Deploy**. Your permanent URL will be:
 
-## Option 2 — Render (recommended for full stack)
+```
+https://nivara-areis.streamlit.app
+```
 
-This repo includes `render.yaml` for one-click deploy.
-
-1. Create account at [render.com](https://render.com)
-2. **New → Blueprint** → connect GitHub repo
-3. Set environment variables for DB and MCP URLs
-4. Deploy
-
-You get a permanent URL: `https://nivara-dashboard.onrender.com`
-
-Add a **custom domain** in Render dashboard (e.g. `dashboard.nivara.ai`).
-
-**Pros:** Custom domain, always-on on paid tier, health checks  
-**Cons:** Free tier has cold starts (~30s)
+(URL depends on the app name you choose.)
 
 ---
 
-## Option 3 — Docker (production)
+## Local development
 
 ```bash
-docker build -t nivara-dashboard ./dashboard
-docker run -p 8501:8501 \
-  -e DB_HOST=your-host \
-  -e VEO_MCP_URL=http://veo-mcp:8006 \
-  nivara-dashboard
+cp dashboard/.streamlit/secrets.toml.example dashboard/.streamlit/secrets.toml
+# Edit secrets.toml with your local values
+pip install -r dashboard/requirements.txt
+./scripts/start-dashboard.sh
 ```
 
-Use with Railway, Fly.io, AWS ECS, or any VPS.
+Open http://localhost:8501
 
 ---
 
-## Environment variables
+## Backend requirements
 
-| Variable | Required | Example |
-|----------|----------|---------|
-| `DB_HOST` | Yes | `dpg-xxxxx.render.com` |
-| `DB_PORT` | Yes | `5432` |
-| `ORCHESTRATOR_URL` | For pipeline | `https://nivara-orchestrator.onrender.com` |
-| `VEO_MCP_URL` | For Media tab | `https://nivara-veo.onrender.com` |
-| `OLLAMA_BASE_URL` | Optional | `http://localhost:11434` |
+Streamlit Cloud runs the **dashboard only**. These services must be reachable over HTTPS:
 
----
+| Service | Used for | Deploy separately on |
+|---------|----------|----------------------|
+| PostgreSQL | Leads, posts, media | Supabase (recommended) or Render Postgres |
+| `veo-mcp` | Media tab (photo → video) | Render / Railway / Fly.io |
+| `social-mcp` | Social publishing | Render / Railway |
+| Orchestrator | Pipeline controls | Render / Railway |
 
-## Permanent URL checklist
-
-- [ ] Deploy dashboard to Streamlit Cloud or Render
-- [ ] Deploy `veo-mcp` and `social-mcp` (Render/Railway)
-- [ ] Use Supabase or Render Postgres (not localhost)
-- [ ] Set custom domain in hosting panel
-- [ ] Remove temporary Cloudflare tunnels (`dashboard.url`)
+Use **Supabase** for the database — the project already has migrations in `supabase/migrations/`.
 
 ---
 
-## Architecture (production)
+## Environment variables reference
+
+| Secret key | Required | Description |
+|------------|----------|-------------|
+| `DB_HOST` | Yes | Postgres hostname |
+| `DB_PORT` | Yes | Usually `5432` |
+| `DB_NAME` | Yes | `nivara` |
+| `DB_USER` | Yes | Database user |
+| `DB_PASSWORD` | Yes | Database password |
+| `ORCHESTRATOR_URL` | For Settings tab | Agent orchestrator API |
+| `VEO_MCP_URL` | For Media tab | Gemini Veo MCP server |
+| `OLLAMA_BASE_URL` | Optional | Local/cloud Ollama |
+
+---
+
+## Architecture
 
 ```mermaid
 flowchart LR
-    User[Browser] --> Dashboard[Streamlit on Render]
-    Dashboard --> DB[(Supabase Postgres)]
-    Dashboard --> Orch[Orchestrator API]
-    Dashboard --> Veo[veo-mcp]
+    User[Browser] --> SC[Streamlit Cloud]
+    SC --> DB[(Supabase Postgres)]
+    SC --> Orch[Orchestrator API]
+    SC --> Veo[veo-mcp]
     Veo --> Gemini[Gemini Veo API]
     Veo --> Social[social-mcp]
 ```
 
-Temporary `trycloudflare.com` / `loca.lt` URLs are for development only. Use Streamlit Cloud or Render for a permanent fix.
+---
+
+## Troubleshooting
+
+| Issue | Fix |
+|-------|-----|
+| App won't start | Check **Manage app → Logs** for missing dependencies |
+| No data shown | Verify `DB_*` secrets and run Supabase migrations |
+| Media upload fails | Set `VEO_MCP_URL` to a public HTTPS endpoint |
+| Secrets not loading | Keys must match `dashboard/config.py` exactly |
+
+---
+
+## Updates
+
+Every push to the connected branch triggers an automatic redeploy. No manual steps needed.

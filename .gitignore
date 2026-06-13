@@ -17,3 +17,5 @@ media_storage/
 n8n_data/
 ollama_data/
 *.log
+dashboard/.streamlit/secrets.toml
+.dashboard-public-url.log
