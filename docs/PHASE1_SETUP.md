@@ -19,7 +19,9 @@ cp .env.example .env
 ## Step 2: Supabase (Free Tier)
 
 1. Create a new project at https://supabase.com (free tier)
-2. Go to **SQL Editor** → run `supabase/migrations/001_initial_schema.sql`
+2. Go to **SQL Editor** → run migrations in order:
+   - `supabase/migrations/001_initial_schema.sql`
+   - `supabase/migrations/002_phase2_media_and_bot_logs.sql`
 3. Optionally run `supabase/seed.sql` for sample Chennai/Andhra data
 4. Copy from **Settings → API**:
    - Project URL → `SUPABASE_URL`
@@ -87,14 +89,19 @@ curl -X POST http://localhost:8000/orchestrate \
 ## Step 6: MCP Servers (Optional)
 
 ```bash
-pip install fastapi uvicorn python-dotenv httpx supabase
+pip install fastapi uvicorn python-dotenv httpx supabase psycopg2-binary python-multipart
 
 # Run each in a separate terminal
 python mcp-servers/crm-mcp/server.py      # :8001
 python mcp-servers/browser-mcp/server.py  # :8002
 python mcp-servers/social-mcp/server.py   # :8003
 python mcp-servers/whatsapp-mcp/server.py  # :8004
+python mcp-servers/higgsfield-mcp/server.py  # :8006
 ```
+
+## Step 7: Higgsfield Photo-to-Video (Phase 2)
+
+See **[PHASE2_HIGGSFIELD.md](PHASE2_HIGGSFIELD.md)** for site photo upload and social video posting.
 
 Test WhatsApp mock:
 
@@ -121,7 +128,9 @@ curl -X POST http://localhost:8004/webhook/message \
 - [ ] Ollama model pulled, `/api/tags` returns models
 - [ ] Agent orchestrator `/health` shows ollama: true
 - [ ] Lead webhook creates row in `leads` table
-- [ ] MCP servers respond on ports 8001-8004
+- [ ] MCP servers respond on ports 8001-8004, 8006
+- [ ] Higgsfield MCP `/health` shows configured or mock mode
+- [ ] Dashboard MEDIA tab can upload photos
 
 ## Next: Phase 2
 

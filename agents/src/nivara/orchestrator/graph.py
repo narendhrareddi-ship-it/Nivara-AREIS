@@ -18,6 +18,7 @@ from nivara.agents import (
     SEOAgent,
     SocialMediaManagerAgent,
     WhatsAppAgent,
+    VisualDesignerAgent,
     AppointmentSchedulerAgent,
 )
 from nivara.agents.base import AgentState
@@ -31,6 +32,7 @@ AgentName = Literal[
     "CompetitorSpy",
     "ContentStrategist",
     "SEOAgent",
+    "VisualDesigner",
     "SocialMediaManager",
     "LeadQualification",
     "WhatsAppAgent",
@@ -54,6 +56,7 @@ class AgentOrchestrator:
             "CompetitorSpy": CompetitorSpyAgent(self.llm, self.crm),
             "ContentStrategist": ContentStrategistAgent(self.llm, self.crm),
             "SEOAgent": SEOAgent(self.llm, self.crm),
+            "VisualDesigner": VisualDesignerAgent(self.llm, self.crm),
             "SocialMediaManager": SocialMediaManagerAgent(self.llm, self.crm),
             "LeadQualification": LeadQualificationAgent(self.llm, self.crm),
             "WhatsAppAgent": WhatsAppAgent(self.llm, self.crm),
@@ -83,8 +86,6 @@ class AgentOrchestrator:
 
         return node
 
-        return node
-
     def _route_next(self, state: AgentState) -> str:
         return state.get("next_agent", "__end__")
 
@@ -110,11 +111,18 @@ class AgentOrchestrator:
         region: str = "Chennai",
         leads: list[dict[str, Any]] | None = None,
         agents: list[str] | None = None,
+        media_assets: list[dict[str, Any]] | None = None,
+        project_id: str | None = None,
+        auto_publish_social: bool = True,
     ) -> AgentState:
         initial_state: AgentState = {
             "task": task,
             "region": region,
             "leads": leads or [],
+            "media_assets": media_assets or [],
+            "media_videos": [],
+            "project_id": project_id or "",
+            "auto_publish_social": auto_publish_social,
             "agent_outputs": {},
             "messages": [],
         }

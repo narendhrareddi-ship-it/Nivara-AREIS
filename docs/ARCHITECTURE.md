@@ -21,6 +21,8 @@ flowchart TB
         MA[Market Analyst]
         CS[Competitor Spy]
         CT[Content Strategist]
+        VD[Visual Designer]
+        SM[Social Media Manager]
         LQ[Lead Qualification]
         CRM[CRM Agent]
         AN[Analytics Agent]
@@ -32,6 +34,7 @@ flowchart TB
         BR_MCP[Browser MCP :8002]
         SOC_MCP[Social MCP :8003]
         WA_MCP[WhatsApp MCP :8004]
+        HF_MCP[Higgsfield MCP :8006]
     end
 
     subgraph Data["Data Layer"]
@@ -49,7 +52,7 @@ flowchart TB
     N8N --> ORCH
     N8N --> SB
 
-    ORCH --> MA --> CS --> CT --> LQ --> CRM --> AN --> CEO
+    ORCH --> MA --> CS --> CT --> VD --> SM --> LQ --> CRM --> AN --> CEO
     ORCH --> OLL
 
     MA --> CRM_MCP
@@ -58,6 +61,8 @@ flowchart TB
     CRM --> CRM_MCP
     AN --> CRM_MCP
     CT --> SOC_MCP
+    VD --> HF_MCP
+    HF_MCP --> SOC_MCP
 
     CRM_MCP --> SB
     SOC_MCP --> SB
@@ -69,11 +74,12 @@ flowchart TB
 | Component | Role | Phase 1 Status |
 |-----------|------|----------------|
 | **Supabase** | CRM database, RLS, REST API | Schema + migrations ready |
-| **N8N** | Scheduled workflows, webhooks | 4 importable workflows |
-| **LangGraph** | Multi-agent orchestration | 7 agents + CEO synthesis |
+| **N8N** | Scheduled workflows, webhooks | 5 importable workflows |
+| **LangGraph** | Multi-agent orchestration | 12 agents + CEO synthesis |
 | **Ollama** | Local LLM inference | Llama 3.2 default |
-| **MCP Servers** | Tool interfaces for agents/Cursor | 4 stub servers |
-| **Docker Compose** | n8n + ollama containers | Ready |
+| **Higgsfield MCP** | Photo-to-video + social publish | higgsfield-mcp :8006 |
+| **MCP Servers** | Tool interfaces for agents/Cursor | 5 servers |
+| **Docker Compose** | n8n + ollama + postgres + dashboard | Ready |
 
 ## Data Flow: Lead Intake
 

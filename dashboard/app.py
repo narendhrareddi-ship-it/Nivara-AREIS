@@ -136,6 +136,7 @@ BG = u'''<canvas id="bg" style="position:fixed;top:0;left:0;width:100%;height:10
 DB_HOST = os.environ.get("DB_HOST", "postgres")
 DB_PORT = int(os.environ.get("DB_PORT", "5432"))
 ORCH_URL = os.environ.get("ORCHESTRATOR_URL", "http://host.docker.internal:8005")
+HIGGSFIELD_URL = os.environ.get("HIGGSFIELD_MCP_URL", "http://host.docker.internal:8006")
 
 def db():
     try: return psycopg2.connect(host=DB_HOST, port=DB_PORT, database="nivara", user="nivara", password="changeme", cursor_factory=RealDictCursor)
@@ -157,6 +158,7 @@ RE_AGENTS = [
     ("ContentStrategist", "Generating luxury property content", "Content calendar for Q3 luxury segment created"),
     ("SEOAgent", "Optimizing property pages for search", "12 property keywords now rank in top 20"),
     ("SocialMediaManager", "Scheduling property showcase posts", "Posts scheduled across Facebook, Instagram, LinkedIn"),
+    ("VisualDesigner", "Generating cinematic videos from site photos", "Higgsfield videos created for 2 property listings"),
     ("LeadQualification", "Scoring incoming property inquiries", "2 hot leads, 3 warm leads identified"),
     ("WhatsAppAgent", "Sending property recommendations", "Campaign delivered to 38 contacts, 12 replies"),
     ("AppointmentScheduler", "Scheduling site visits", "4 site visits confirmed for this week"),
@@ -286,13 +288,13 @@ for col, (val, label, sub, color, extra) in zip(all_cols, stats):
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Tabs ──
-t1, t2, t3, t4, t5, t6 = st.tabs([u"\u26A1 ACTIVITY", u"\U0001F6F8 PIPELINE", u"\U0001F4E1 SOCIAL", u"\U0001F4AC CHAT", u"\U0001F4CA LEADS", u"\u2699 SETTINGS"])
+t1, t2, t3, t4, t5, t6, t7 = st.tabs([u"\u26A1 ACTIVITY", u"\U0001F6F8 PIPELINE", u"\U0001F4E1 SOCIAL", u"\U0001F3AC MEDIA", u"\U0001F4AC CHAT", u"\U0001F4CA LEADS", u"\u2699 SETTINGS"])
 
 # ═══ TAB 1 ═══
 with t1:
     c1, c2, c3 = st.columns([1, 1, 2])
     with c1: sf = st.selectbox("", ["All", "success", "processing", "error"], label_visibility="collapsed")
-    with c2: af = st.selectbox("", ["All", "MarketAnalyst","CompetitorSpy","ContentStrategist","SEOAgent","SocialMediaManager","LeadQualification","WhatsAppAgent","AppointmentScheduler","CRM","Analytics","CEO"], label_visibility="collapsed")
+    with c2: af = st.selectbox("", ["All", "MarketAnalyst","CompetitorSpy","ContentStrategist","SEOAgent","VisualDesigner","SocialMediaManager","LeadQualification","WhatsAppAgent","AppointmentScheduler","CRM","Analytics","CEO"], label_visibility="collapsed")
     with c3:
         if st.button(u"\u27F3 REFRESH"): st.rerun()
     sql = "SELECT * FROM bot_logs WHERE 1=1"; pr = []
@@ -311,7 +313,7 @@ with t1:
 
 # ═══ TAB 2 ═══
 with t2:
-    agents = ["MarketAnalyst","CompetitorSpy","ContentStrategist","SEOAgent","SocialMediaManager","LeadQualification","WhatsAppAgent","AppointmentScheduler","CRM","Analytics","CEO"]
+    agents = ["MarketAnalyst","CompetitorSpy","ContentStrategist","SEOAgent","VisualDesigner","SocialMediaManager","LeadQualification","WhatsAppAgent","AppointmentScheduler","CRM","Analytics","CEO"]
     pl = q("SELECT agent_name,action,status,timestamp FROM bot_logs WHERE timestamp>=COALESCE((SELECT MAX(timestamp) FROM bot_logs WHERE agent_name='MarketAnalyst' AND action='Starting task'),now()-interval'1 hour') ORDER BY timestamp ASC")
     done = set(); running = None
     if pl:
@@ -382,8 +384,106 @@ with t3:
     else:
         st.info("No posts yet. Click SIMULATE POST to generate one.")
 
-# ═══ TAB 4 ═══
+# ═══ TAB 4 — MEDIA (Higgsfield Photo → Video) ═══
 with t4:
+    st.markdown('<div class="section-label">Site Photo → Higgsfield Video → Social Post</div>', unsafe_allow_html=True)
+    import base64
+    import requests as req
+
+    projects = q("SELECT id, name, location_city FROM projects WHERE is_active=true ORDER BY name")
+    proj_options = {f"{p['name']} ({p['location_city']})": str(p['id']) for p in projects} if projects else {}
+
+    col_up, col_gen = st.columns([1, 1])
+    with col_up:
+        st.markdown("**1. Upload Site Photo**")
+        uploaded = st.file_uploader("Choose property photo", type=["jpg", "jpeg", "png", "webp"])
+        proj_sel = st.selectbox("Project", ["— None —"] + list(proj_options.keys())) if proj_options else None
+        project_id = proj_options.get(proj_sel) if proj_sel and proj_sel != "— None —" else None
+
+        if uploaded and st.button("UPLOAD PHOTO", type="primary"):
+            try:
+                files = {"file": (uploaded.name, uploaded.getvalue(), uploaded.type)}
+                data = {}
+                if project_id:
+                    data["project_id"] = project_id
+                r = req.post(f"{HIGGSFIELD_URL}/upload", files=files, data=data, timeout=60)
+                if r.ok:
+                    result = r.json()
+                    st.session_state["last_media_asset"] = result.get("result", {})
+                    st.session_state["last_photo_url"] = result.get("public_url", "")
+                    st.success(f"Uploaded! Asset ID: {result.get('result', {}).get('id', 'N/A')}")
+                else:
+                    st.error(f"Upload failed: {r.status_code} {r.text[:200]}")
+            except Exception as e:
+                st.error(f"Upload error: {e}")
+
+    with col_gen:
+        st.markdown("**2. Generate Video & Post**")
+        motion_prompt = st.text_area(
+            "Video motion prompt",
+            value="Smooth cinematic camera pan across this luxury property, golden hour lighting, gentle breeze",
+            height=80,
+        )
+        caption = st.text_area(
+            "Social post caption",
+            value="Experience luxury living with NIVARA REALTY 🏙️ #ChennaiRealEstate #LuxuryLiving",
+            height=60,
+        )
+        platforms = st.multiselect("Platforms", ["instagram", "facebook", "linkedin"], default=["instagram", "facebook"])
+
+        if st.button("🎬 GENERATE VIDEO & POST", type="primary"):
+            asset = st.session_state.get("last_media_asset", {})
+            asset_id = str(asset.get("id", ""))
+            if not asset_id:
+                st.error("Upload a site photo first.")
+            else:
+                try:
+                    with st.spinner("Generating video with Higgsfield (may take 1-3 min)..."):
+                        r = req.post(
+                            f"{HIGGSFIELD_URL}/call",
+                            json={
+                                "name": "photo_to_video",
+                                "arguments": {
+                                    "media_asset_id": asset_id,
+                                    "prompt": motion_prompt,
+                                    "project_id": project_id,
+                                    "auto_publish": True,
+                                    "platforms": platforms,
+                                    "post_caption": caption,
+                                },
+                            },
+                            timeout=600,
+                        )
+                    if r.ok:
+                        data = r.json().get("result", {})
+                        st.success(f"Video created: {data.get('video_url', 'N/A')}")
+                        pub = data.get("publish_results", [])
+                        if pub:
+                            st.json(pub)
+                        st.rerun()
+                    else:
+                        st.error(f"Generation failed: {r.status_code} {r.text[:300]}")
+                except Exception as e:
+                    st.error(f"Error: {e}")
+
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown('<div class="section-label">Media Library</div>', unsafe_allow_html=True)
+    media = q("SELECT id, asset_type, status, source_url, output_url, prompt, created_at FROM media_assets ORDER BY created_at DESC LIMIT 20")
+    if media:
+        for m in media:
+            url = m.get("output_url") or m.get("source_url") or ""
+            st.markdown(
+                f'<div class="glass" style="margin-bottom:6px">'
+                f'<span style="font-family:Orbitron;color:#00f0ff;font-size:0.6rem">{m["asset_type"].upper()} — {m["status"].upper()}</span>'
+                f'<p style="font-size:0.7rem;color:#667;margin:2px 0">{m.get("prompt","")[:100]}</p>'
+                f'<p style="font-size:0.6rem;color:#445">{url[:80]}</p></div>',
+                unsafe_allow_html=True,
+            )
+    else:
+        st.info("No media assets yet. Upload a site photo to get started.")
+
+# ═══ TAB 5 — CHAT ═══
+with t5:
     c1, c2 = st.columns([3, 2])
     with c1:
         st.markdown('<div class="section-label">Conversation Feed</div>', unsafe_allow_html=True)
@@ -415,8 +515,8 @@ with t4:
         else:
             st.info("No leads in database.")
 
-# ═══ TAB 5 ═══
-with t5:
+# ═══ TAB 6 — LEADS ═══
+with t6:
     c1, c2 = st.columns(2)
     with c1: sf2 = st.selectbox("", ["All","new","contacted","qualified","nurturing","negotiating","converted","lost"], label_visibility="collapsed")
     with c2: sb = st.selectbox("", ["Score \u2193","Score \u2191","Name A-Z","Newest"], label_visibility="collapsed")
@@ -457,8 +557,8 @@ with t5:
     else:
         st.info("No leads found.")
 
-# ═══ TAB 6 ═══
-with t6:
+# ═══ TAB 7 — SETTINGS ═══
+with t7:
     st.markdown('<div class="section-label">Pipeline Controls</div>', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
@@ -482,7 +582,7 @@ with t6:
         if st.button(u"\u27F3 REFRESH"): st.rerun()
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-label">Manual Agent Dispatch</div>', unsafe_allow_html=True)
-    aa = ["MarketAnalyst","CompetitorSpy","ContentStrategist","SEOAgent","SocialMediaManager","LeadQualification","WhatsAppAgent","AppointmentScheduler","CRM","Analytics","CEO"]
+    aa = ["MarketAnalyst","CompetitorSpy","ContentStrategist","SEOAgent","VisualDesigner","SocialMediaManager","LeadQualification","WhatsAppAgent","AppointmentScheduler","CRM","Analytics","CEO"]
     ac = st.columns(4)
     for i, a in enumerate(aa):
         with ac[i%4]:

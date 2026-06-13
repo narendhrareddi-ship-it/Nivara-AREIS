@@ -29,6 +29,9 @@ class OrchestrateRequest(BaseModel):
     region: str = Field(default="Chennai")
     leads: list[dict[str, Any]] = Field(default_factory=list)
     agents: list[str] | None = None
+    media_assets: list[dict[str, Any]] = Field(default_factory=list)
+    project_id: str | None = None
+    auto_publish_social: bool = True
 
 
 class OrchestrateResponse(BaseModel):
@@ -56,6 +59,9 @@ async def orchestrate(request: OrchestrateRequest) -> OrchestrateResponse:
         region=request.region,
         leads=request.leads,
         agents=request.agents,
+        media_assets=request.media_assets,
+        project_id=request.project_id,
+        auto_publish_social=request.auto_publish_social,
     )
     return OrchestrateResponse(
         task=request.task,

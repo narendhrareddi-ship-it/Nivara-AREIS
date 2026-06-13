@@ -1,31 +1,36 @@
 {
   "name": "nivara-social",
-  "version": "0.1.0",
-  "description": "Mock social media MCP for FB/IG/LinkedIn/X/YouTube webhooks",
+  "version": "0.2.0",
+  "description": "Social media MCP for FB/IG/LinkedIn/X/YouTube with video support",
   "tools": [
     {
       "name": "publish_post",
-      "description": "Mock publish to a social platform (logs + stores in Supabase)",
+      "description": "Publish to a social platform (stores in CRM with media support)",
       "inputSchema": {
         "type": "object",
         "properties": {
           "platform": { "type": "string", "enum": ["facebook", "instagram", "linkedin", "twitter", "youtube"] },
           "content": { "type": "string" },
           "campaign_id": { "type": "string" },
-          "project_id": { "type": "string" }
+          "project_id": { "type": "string" },
+          "media_urls": { "type": "array", "items": { "type": "string" } },
+          "media_type": { "type": "string", "enum": ["text", "image", "video"], "default": "text" },
+          "media_asset_id": { "type": "string" }
         },
         "required": ["platform", "content"]
       }
     },
     {
       "name": "schedule_post",
-      "description": "Schedule a mock social post",
+      "description": "Schedule a social post with optional video",
       "inputSchema": {
         "type": "object",
         "properties": {
           "platform": { "type": "string" },
           "content": { "type": "string" },
-          "scheduled_at": { "type": "string", "format": "date-time" }
+          "scheduled_at": { "type": "string", "format": "date-time" },
+          "media_urls": { "type": "array", "items": { "type": "string" } },
+          "media_type": { "type": "string" }
         },
         "required": ["platform", "content", "scheduled_at"]
       }

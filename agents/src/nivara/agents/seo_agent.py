@@ -26,5 +26,5 @@ class SEOAgent(BaseAgent):
         
         return {
             "agent_outputs": {**state.get("agent_outputs", {}), self.name: seo_strategy},
-            "next_agent": "SocialMediaManager",
+            "next_agent": "VisualDesigner",
         }

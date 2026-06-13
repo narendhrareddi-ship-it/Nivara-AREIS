@@ -1,0 +1,83 @@
+{
+  "name": "nivara-higgsfield",
+  "version": "0.1.0",
+  "description": "Higgsfield MCP — site photo upload, image-to-video generation, media asset management",
+  "tools": [
+    {
+      "name": "upload_site_photo",
+      "description": "Upload a site photo and store it as a media asset",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "filename": { "type": "string" },
+          "content_base64": { "type": "string" },
+          "project_id": { "type": "string" },
+          "mime_type": { "type": "string", "default": "image/jpeg" }
+        },
+        "required": ["filename", "content_base64"]
+      }
+    },
+    {
+      "name": "photo_to_video",
+      "description": "Generate a cinematic video from a site photo using Higgsfield AI",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "media_asset_id": { "type": "string" },
+          "image_url": { "type": "string" },
+          "prompt": { "type": "string" },
+          "project_id": { "type": "string" },
+          "duration": { "type": "integer", "default": 5 },
+          "auto_publish": { "type": "boolean", "default": false },
+          "platforms": {
+            "type": "array",
+            "items": { "type": "string" },
+            "default": ["instagram", "facebook"]
+          },
+          "post_caption": { "type": "string" }
+        },
+        "required": ["prompt"]
+      }
+    },
+    {
+      "name": "get_media_status",
+      "description": "Check status of a media asset or Higgsfield job",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "media_asset_id": { "type": "string" },
+          "request_id": { "type": "string" }
+        }
+      }
+    },
+    {
+      "name": "list_project_media",
+      "description": "List media assets for a project",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "project_id": { "type": "string" },
+          "asset_type": { "type": "string", "enum": ["photo", "video", "image"] }
+        },
+        "required": ["project_id"]
+      }
+    },
+    {
+      "name": "publish_video_to_social",
+      "description": "Publish a generated video to social platforms via social-mcp",
+      "inputSchema": {
+        "type": "object",
+        "properties": {
+          "media_asset_id": { "type": "string" },
+          "platforms": {
+            "type": "array",
+            "items": { "type": "string" }
+          },
+          "caption": { "type": "string" },
+          "project_id": { "type": "string" }
+        },
+        "required": ["media_asset_id", "caption"]
+      }
+    }
+  ]
+}

@@ -71,11 +71,14 @@ async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
     match request.name:
         case "publish_post":
             post_id = str(uuid.uuid4())
+            media_urls = args.get("media_urls", [])
+            media_type = args.get("media_type", "text")
             record = {
                 "platform": args["platform"],
                 "content": args["content"],
                 "campaign_id": args.get("campaign_id"),
                 "project_id": args.get("project_id"),
+                "media_urls": media_urls,
                 "published_at": datetime.now(UTC).isoformat(),
                 "external_post_id": f"mock_{post_id[:8]}",
                 "likes": 0,
@@ -83,7 +86,14 @@ async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
                 "comments": 0,
                 "reach": 0,
                 "is_mock": True,
-                "metadata": {"phase": 1, "mock": True},
+                "post_status": "published",
+                "media_asset_id": args.get("media_asset_id"),
+                "metadata": {
+                    "phase": 2,
+                    "mock": True,
+                    "media_type": media_type,
+                    "media_urls": media_urls,
+                },
             }
             stored = _store_post(record)
             logger.info("Mock published to %s: %s", args["platform"], args["content"][:80])

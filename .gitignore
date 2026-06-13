@@ -13,6 +13,7 @@ build/
 node_modules/
 .DS_Store
 Thumbs.db
+media_storage/
 n8n_data/
 ollama_data/
 *.log

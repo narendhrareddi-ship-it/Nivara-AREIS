@@ -143,6 +143,53 @@ class SupabaseCRM:
         cols = ", ".join(data.keys())
         placeholders = ", ".join(["%s"] * len(data))
         query = f"INSERT INTO social_posts ({cols}) VALUES ({placeholders}) RETURNING *"
-        
+
         result = self._execute_query(query, tuple(data.values()), fetch="one")
         return result or {}
+
+    def create_media_asset(self, data: dict[str, Any]) -> dict[str, Any]:
+        cols = ", ".join(data.keys())
+        placeholders = ", ".join(["%s"] * len(data))
+        query = f"INSERT INTO media_assets ({cols}) VALUES ({placeholders}) RETURNING *"
+        result = self._execute_query(query, tuple(data.values()), fetch="one")
+        return result or {}
+
+    def update_media_asset(self, asset_id: str, data: dict[str, Any]) -> dict[str, Any]:
+        if not data:
+            return self.get_media_asset(asset_id) or {}
+        set_clause = ", ".join([f"{k} = %s" for k in data.keys()])
+        values = list(data.values()) + [asset_id]
+        query = f"UPDATE media_assets SET {set_clause} WHERE id = %s RETURNING *"
+        result = self._execute_query(query, tuple(values), fetch="one")
+        return result or {}
+
+    def get_media_asset(self, asset_id: str) -> dict[str, Any] | None:
+        query = "SELECT * FROM media_assets WHERE id = %s"
+        return self._execute_query(query, (asset_id,), fetch="one")
+
+    def get_media_by_project(
+        self, project_id: str, asset_type: str | None = None, limit: int = 20
+    ) -> list[dict[str, Any]]:
+        query = "SELECT * FROM media_assets WHERE project_id = %s"
+        params: list[Any] = [project_id]
+        if asset_type:
+            query += " AND asset_type = %s"
+            params.append(asset_type)
+        query += " ORDER BY created_at DESC LIMIT %s"
+        params.append(limit)
+        return self._execute_query(query, tuple(params), fetch="all")
+
+    def get_pending_media_jobs(self, limit: int = 10) -> list[dict[str, Any]]:
+        query = (
+            "SELECT * FROM media_assets WHERE status IN ('queued', 'generating') "
+            "ORDER BY created_at ASC LIMIT %s"
+        )
+        return self._execute_query(query, (limit,), fetch="all")
+
+    def get_media_ready_to_publish(self, limit: int = 10) -> list[dict[str, Any]]:
+        query = (
+            "SELECT * FROM media_assets WHERE status = 'completed' AND asset_type = 'video' "
+            "AND id NOT IN (SELECT media_asset_id FROM social_posts WHERE media_asset_id IS NOT NULL) "
+            "ORDER BY created_at ASC LIMIT %s"
+        )
+        return self._execute_query(query, (limit,), fetch="all")

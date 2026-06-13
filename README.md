@@ -42,10 +42,12 @@ Details: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
 | Deliverable | Status |
 |-------------|--------|
 | Supabase schema (10 tables + RLS) | ✅ |
-| Docker Compose (n8n + ollama) | ✅ |
-| N8N workflows (4) | ✅ |
-| LangGraph agents (7 of 20) | ✅ |
-| MCP servers (4 stubs) | ✅ |
+| Phase 2 migration (bot_logs, media_assets) | ✅ |
+| Docker Compose (n8n + ollama + postgres + dashboard + higgsfield) | ✅ |
+| N8N workflows (5) | ✅ |
+| LangGraph agents (12 of 20) | ✅ |
+| MCP servers (5) | ✅ |
+| Higgsfield photo-to-video → social | ✅ |
 | Documentation | ✅ |
 
 ## Project Structure
@@ -61,9 +63,15 @@ Details: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
 
 ## Agents (Phase 1)
 
-CEO · MarketAnalyst · CompetitorSpy · ContentStrategist · LeadQualification · CRM · Analytics
+CEO · MarketAnalyst · CompetitorSpy · ContentStrategist · SEOAgent · VisualDesigner · SocialMediaManager · LeadQualification · WhatsAppAgent · AppointmentScheduler · CRM · Analytics
 
 Full roster: **[docs/AGENT_ROSTER.md](docs/AGENT_ROSTER.md)**
+
+## Higgsfield Integration (Phase 2)
+
+Upload site photos → AI generates cinematic videos → auto-posts to social media.
+
+Guide: **[docs/PHASE2_HIGGSFIELD.md](docs/PHASE2_HIGGSFIELD.md)**
 
 ## Stack (Free Only)
 
@@ -83,6 +91,8 @@ Paid upgrade path: **[docs/FREE_TIER_LIMITS.md](docs/FREE_TIER_LIMITS.md)**
 | N8N | http://localhost:5678 |
 | Ollama | http://localhost:11434 |
 | CRM MCP | http://localhost:8001 |
+| Higgsfield MCP | http://localhost:8006 |
+| Dashboard (AREIS) | http://localhost:8501 |
 | WhatsApp Mock | http://localhost:8004/webhook/message |
 
 ## License

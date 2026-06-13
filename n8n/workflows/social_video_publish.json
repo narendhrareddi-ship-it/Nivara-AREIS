@@ -1,0 +1,67 @@
+{
+  "name": "social_video_publish",
+  "nodes": [
+    {
+      "parameters": {
+        "rule": {
+          "interval": [
+            {
+              "triggerAtHour": 10
+            }
+          ]
+        }
+      },
+      "id": "trigger-daily-10am",
+      "name": "Daily 10 AM Trigger",
+      "type": "n8n-nodes-base.scheduleTrigger",
+      "typeVersion": 1.2,
+      "position": [240, 300]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "SELECT * FROM media_assets WHERE status = 'completed' AND asset_type = 'video' AND id NOT IN (SELECT COALESCE(media_asset_id, '00000000-0000-0000-0000-000000000000') FROM social_posts WHERE media_asset_id IS NOT NULL) ORDER BY created_at ASC LIMIT 5"
+      },
+      "id": "fetch-ready-videos",
+      "name": "Fetch Ready Videos",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2,
+      "position": [480, 300]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8006/call",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"name\": \"publish_video_to_social\",\n  \"arguments\": {\n    \"media_asset_id\": \"{{ $json.id }}\",\n    \"caption\": \"Discover luxury living with NIVARA REALTY 🏙️ #ChennaiRealEstate\",\n    \"platforms\": [\"instagram\", \"facebook\"],\n    \"project_id\": \"{{ $json.project_id }}\"\n  }\n}"
+      },
+      "id": "publish-to-social",
+      "name": "Publish via Higgsfield MCP",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [720, 300]
+    },
+    {
+      "parameters": {
+        "content": "## Social Video Publish Pipeline\n\nRuns daily at 10 AM IST. Publishes completed Higgsfield videos to social platforms.\n\nRequires: higgsfield-mcp (:8006), social-mcp (:8003), Postgres with media_assets table."
+      },
+      "id": "sticky-note",
+      "name": "Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [240, 120]
+    }
+  ],
+  "connections": {
+    "Daily 10 AM Trigger": {
+      "main": [[{"node": "Fetch Ready Videos", "type": "main", "index": 0}]]
+    },
+    "Fetch Ready Videos": {
+      "main": [[{"node": "Publish via Higgsfield MCP", "type": "main", "index": 0}]]
+    }
+  },
+  "settings": {
+    "executionOrder": "v1"
+  }
+}

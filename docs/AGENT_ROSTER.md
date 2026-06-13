@@ -25,8 +25,8 @@ Full digital marketing agency architecture. Phase 1 implements 7 core agents; re
 |---|-------|------|---------|
 | 8 | **ContentStrategist** | Content calendar, messaging, Tamil/English mix | ✅ Implemented |
 | 9 | **Copywriter** | Ad copy, landing pages, email sequences | 🔲 Stub |
-| 10 | **VisualDesigner** | Image/video briefs (Canva/manual in Phase 1) | 🔲 Stub |
-| 11 | **SEOAgent** | Local SEO, Google Business, schema markup | 🔲 Stub |
+| 10 | **VisualDesigner** | Image/video briefs, Higgsfield photo-to-video | ✅ Implemented |
+| 11 | **SEOAgent** | Local SEO, Google Business, schema markup | ✅ Implemented |
 
 ## Lead & Sales
 
@@ -35,31 +35,32 @@ Full digital marketing agency architecture. Phase 1 implements 7 core agents; re
 | 12 | **LeadQualification** | Score leads, match to projects | ✅ Implemented |
 | 13 | **CRM** | Lifecycle management, follow-ups | ✅ Implemented |
 | 14 | **SalesCoach** | Objection handling, negotiation scripts | 🔲 Stub |
-| 15 | **AppointmentScheduler** | Site visit and call scheduling | 🔲 Stub |
+| 15 | **AppointmentScheduler** | Site visit and call scheduling | ✅ Implemented |
 
 ## Channels & Analytics
 
 | # | Agent | Role | Phase 1 |
 |---|-------|------|---------|
 | 16 | **Analytics** | Campaign ROI, CPL, channel performance | ✅ Implemented |
-| 17 | **SocialMediaManager** | FB/IG/LinkedIn/X posting | 🔲 Stub (social-mcp mock) |
+| 17 | **SocialMediaManager** | FB/IG/LinkedIn/X posting with video support | ✅ Implemented |
 | 18 | **PaidAdsManager** | Google/Meta ad optimization | 🔲 Stub |
-| 19 | **WhatsAppAgent** | Conversational lead nurturing | 🔲 Stub (whatsapp-mcp mock) |
+| 19 | **WhatsAppAgent** | Conversational lead nurturing | ✅ Implemented |
 | 20 | **EmailMarketer** | Drip campaigns, newsletters | 🔲 Stub |
 
-## Phase 1 Agent Graph
+## Phase 1 Agent Graph (updated Phase 2)
 
 ```
-MarketAnalyst → CompetitorSpy → ContentStrategist → LeadQualification → CRM → Analytics → CEO
+MarketAnalyst → CompetitorSpy → ContentStrategist → SEOAgent → VisualDesigner
+  → SocialMediaManager → LeadQualification → WhatsAppAgent → AppointmentScheduler
+  → CRM → Analytics → CEO
 ```
 
-## Stub Agent Plan (Phase 2-4)
+## Stub Agent Plan (Phase 3-4)
 
 | Phase | Agents to Implement |
 |-------|---------------------|
-| **Phase 2** | WhatsAppAgent, AppointmentScheduler, SocialMediaManager, SEOAgent |
 | **Phase 3** | PaidAdsManager, Copywriter, LocationScout, EmailMarketer |
-| **Phase 4** | COO, CMO, SalesCoach, VisualDesigner, RegulatoryWatch |
+| **Phase 4** | COO, CMO, SalesCoach, RegulatoryWatch |
 
 ## Agent ↔ MCP Mapping
 
@@ -67,5 +68,6 @@ MarketAnalyst → CompetitorSpy → ContentStrategist → LeadQualification → 
 |-------|-----------|-------|
 | CRM, LeadQualification | crm-mcp | list_leads, update_lead, log_activity |
 | CompetitorSpy | browser-mcp | scrape_competitor, search_listings |
-| SocialMediaManager | social-mcp | publish_post, schedule_post |
+| VisualDesigner | higgsfield-mcp | upload_site_photo, photo_to_video |
+| SocialMediaManager | social-mcp, higgsfield-mcp | publish_post, publish_video_to_social |
 | WhatsAppAgent | whatsapp-mcp | handle_message, score_lead |

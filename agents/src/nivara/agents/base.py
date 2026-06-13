@@ -2,7 +2,10 @@
 
 from __future__ import annotations
 
+import logging
 from typing import Annotated, Any, TypedDict
+
+logger = logging.getLogger(__name__)
 
 from langgraph.graph.message import add_messages
 
@@ -17,7 +20,10 @@ class AgentState(TypedDict, total=False):
     analytics: list[dict[str, Any]]
     agent_outputs: dict[str, str]
     next_agent: str
-    final_report: str
+    media_videos: list[dict[str, Any]]
+    media_assets: list[dict[str, Any]]
+    project_id: str
+    auto_publish_social: bool
 
 
 class BaseAgent:

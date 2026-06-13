@@ -2,13 +2,18 @@
 
 LangGraph-based agent orchestration for NIVARA REALTY digital marketing.
 
-## Phase 1 Agents (Implemented)
+## Phase 1 + 2 Agents (Implemented)
 
 - **CEO** — Executive briefing synthesis
 - **MarketAnalyst** — Market trends (Chennai/Andhra)
 - **CompetitorSpy** — Competitor intelligence
 - **ContentStrategist** — Content calendar and copy
+- **SEOAgent** — Local SEO strategy
+- **VisualDesigner** — Higgsfield photo-to-video generation
+- **SocialMediaManager** — Social posting with video support
 - **LeadQualification** — Lead scoring
+- **WhatsAppAgent** — Conversational lead nurturing
+- **AppointmentScheduler** — Site visit scheduling
 - **CRM** — Lifecycle management
 - **Analytics** — Campaign ROI analysis
 
