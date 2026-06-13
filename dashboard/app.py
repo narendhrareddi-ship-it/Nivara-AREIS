@@ -8,130 +8,9 @@ import plotly.graph_objects as go
 import plotly.express as px
 import random
 
-st.set_page_config(page_title=u"NIVARA \u2014 AREIS", page_icon=u"\u2B21", layout="wide", initial_sidebar_state="collapsed")
+from theme import CSS, LOGO_SVG, CHART_COLORS, RED, RED_DARK, NAVY, GOLD, SLATE, plotly_layout, stat_card, market_chip, post_card
 
-LOGO_SVG = u'''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 500 90" style="width:100%;max-width:520px;height:auto">
-<defs>
-<linearGradient id="cg" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#00f0ff"/><stop offset="100%" stop-color="#0066ff"/></linearGradient>
-<linearGradient id="mg" x1="0" y1="0" x2="1" y2="0"><stop offset="0%" stop-color="#ff0055"/><stop offset="100%" stop-color="#bd00ff"/></linearGradient>
-<filter id="gl"><feGaussianBlur stdDeviation="2" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
-</defs>
-<g fill="none" stroke="url(#cg)" stroke-width="1.8">
-<rect x="8" y="34" width="12" height="42" rx="1.5"/>
-<rect x="24" y="50" width="9" height="26" rx="1"/>
-<rect x="37" y="24" width="14" height="52" rx="1.5"/>
-<rect x="55" y="42" width="9" height="34" rx="1"/>
-</g>
-<line x1="44" y1="10" x2="44" y2="24" stroke="url(#cg)" stroke-width="1.2"/>
-<circle cx="44" cy="7" r="2.5" fill="#00f0ff" filter="url(#gl)"/>
-<circle cx="44" cy="7" r="1.2" fill="#fff"/>
-<g fill="#00f0ff" opacity="0.6">
-<rect x="11" y="40" width="3" height="2" rx="0.5"/>
-<rect x="11" y="46" width="3" height="2" rx="0.5" opacity="0.4"/>
-<rect x="11" y="52" width="3" height="2" rx="0.5"/>
-<rect x="11" y="58" width="3" height="2" rx="0.5" opacity="0.3"/>
-<rect x="40" y="32" width="4" height="2.5" rx="0.5"/>
-<rect x="40" y="40" width="4" height="2.5" rx="0.5" opacity="0.7"/>
-<rect x="40" y="48" width="4" height="2.5" rx="0.5"/>
-<rect x="40" y="56" width="4" height="2.5" rx="0.5" opacity="0.4"/>
-<rect x="47" y="32" width="4" height="2.5" rx="0.5" opacity="0.5"/>
-<rect x="47" y="40" width="4" height="2.5" rx="0.5" opacity="0.8"/>
-<rect x="47" y="48" width="4" height="2.5" rx="0.5" opacity="0.3"/>
-</g>
-<path d="M14 34 L14 16 L44 16" stroke="url(#mg)" stroke-width="0.9" fill="none" opacity="0.45"/>
-<path d="M44 16 L60 16 L60 42" stroke="url(#mg)" stroke-width="0.9" fill="none" opacity="0.25"/>
-<circle cx="14" cy="16" r="1.5" fill="#ff0055"/>
-<circle cx="60" cy="16" r="1.5" fill="#ff0055"/>
-<circle cx="44" cy="16" r="2" fill="#00f0ff" filter="url(#gl)"/>
-<text x="82" y="48" font-family="'Orbitron', sans-serif" font-size="30" font-weight="900" fill="url(#cg)" letter-spacing="3">NIVARA</text>
-<text x="315" y="48" font-family="'Orbitron', sans-serif" font-size="12" font-weight="600" fill="#ff0055" letter-spacing="2">\u2014 AREIS</text>
-<text x="82" y="66" font-family="'JetBrains Mono', monospace" font-size="6.5" fill="rgba(255,255,255,0.12)" letter-spacing="1.5">AUTONOMOUS REAL ESTATE INTELLIGENCE SYSTEM</text>
-<text x="82" y="76" font-family="'JetBrains Mono', monospace" font-size="5.5" fill="rgba(0,240,255,0.08)" letter-spacing="3">CHENNAI  \u2022  ANDHRA  \u2022  REAL ESTATE AI</text>
-</svg>'''
-
-CSS = u'''<style>
-@import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;500;700;900&family=Inter:wght@300;400;500;600&family=JetBrains+Mono:wght@400;500&display=swap');
-.stApp { background: #08080f !important; color: #e2e8f0 !important; font-family: 'Inter', sans-serif !important; }
-header, footer { display: none !important; }
-.main > div { padding: 1.2rem 2.5rem !important; max-width: 1440px; margin: 0 auto; }
-.title-bar { height: 1.5px; background: linear-gradient(90deg, #00f0ff, #0066ff, transparent); margin: 0.4rem 0 0.8rem 0; border-radius: 1px; }
-.glass { background: rgba(10, 12, 26, 0.55) !important; backdrop-filter: blur(14px) !important; border: 1px solid rgba(0, 240, 255, 0.08) !important; border-radius: 12px !important; padding: 1.2rem !important; box-shadow: 0 4px 20px rgba(0,0,0,0.4) !important; transition: all 0.3s ease; }
-.glass:hover { border-color: rgba(0, 240, 255, 0.25) !important; }
-.stat-box { background: rgba(10, 12, 26, 0.5); backdrop-filter: blur(12px); border: 1px solid rgba(0, 240, 255, 0.08); border-radius: 10px; padding: 0.7rem 1.2rem; border-left: 3px solid #00f0ff; }
-.stat-box.pink { border-left-color: #ff0055; }
-.stat-box.gold { border-left-color: #ffd700; }
-.stat-box.purple { border-left-color: #bd00ff; }
-.stat-box.green { border-left-color: #4ade80; }
-.stat-label { font-family: 'JetBrains Mono', monospace; font-size: 0.5rem; color: #667; text-transform: uppercase; letter-spacing: 1.5px; }
-.stat-val { font-family: 'Orbitron', sans-serif; font-size: 1.4rem; font-weight: 700; color: #00f0ff; margin: 0.05rem 0; }
-.stat-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.5rem; color: #445; }
-.text-cyan { color: #00f0ff !important; }
-.text-pink { color: #ff0055 !important; }
-.text-gold { color: #ffd700 !important; }
-.text-purple { color: #bd00ff !important; }
-.text-green { color: #4ade80 !important; }
-.stButton button { font-family: 'Orbitron', sans-serif !important; font-size: 0.65rem !important; font-weight: 500 !important; letter-spacing: 1px !important; border-radius: 8px !important; padding: 0.4rem 1rem !important; transition: all 0.3s !important; background: rgba(0, 240, 255, 0.04) !important; color: #00f0ff !important; border: 1px solid rgba(0, 240, 255, 0.15) !important; }
-.stButton button:hover { background: rgba(0, 240, 255, 0.1) !important; border-color: #00f0ff !important; box-shadow: 0 0 12px rgba(0, 240, 255, 0.15) !important; }
-.stButton button[kind="primary"] { background: linear-gradient(135deg, rgba(0, 240, 255, 0.12), rgba(0, 102, 255, 0.08)) !important; border-color: rgba(0, 240, 255, 0.25) !important; }
-.stButton button[kind="primary"]:hover { background: linear-gradient(135deg, rgba(0, 240, 255, 0.2), rgba(0, 102, 255, 0.12)) !important; box-shadow: 0 0 18px rgba(0, 240, 255, 0.25) !important; }
-.stTabs [data-baseweb="tab-list"] { gap: 4px; background: rgba(5, 6, 12, 0.4) !important; border: 1px solid rgba(0, 240, 255, 0.06) !important; padding: 4px !important; border-radius: 10px !important; }
-.stTabs [data-baseweb="tab"] { font-family: 'Orbitron', sans-serif !important; font-size: 0.65rem !important; font-weight: 700 !important; letter-spacing: 1px !important; color: rgba(255, 255, 255, 0.3) !important; border-radius: 6px !important; padding: 6px 14px !important; border: 1px solid transparent !important; }
-.stTabs [data-baseweb="tab"]:hover { color: #00f0ff !important; }
-.stTabs [aria-selected="true"] { color: #fff !important; background: rgba(0, 240, 255, 0.1) !important; border-color: rgba(0, 240, 255, 0.3) !important; box-shadow: 0 0 8px rgba(0, 240, 255, 0.1) !important; }
-.node { display: inline-flex; align-items: center; gap: 4px; padding: 4px 8px; border-radius: 6px; font-family: 'JetBrains Mono', monospace; font-size: 0.5rem; font-weight: 700; text-transform: uppercase; border: 1px solid rgba(255,255,255,0.04); }
-.node.done { background: rgba(0,240,255,0.06); color: #00f0ff; border-color: rgba(0,240,255,0.2); }
-.node.run { background: rgba(255,0,85,0.08); color: #ff0055; border-color: #ff0055; animation: pulse 1.5s infinite; }
-.node.wait { background: transparent; color: rgba(255,255,255,0.1); }
-@keyframes pulse { 0%,100% { opacity: 0.7; box-shadow: 0 0 6px rgba(255,0,85,0.1); } 50% { opacity: 1; box-shadow: 0 0 14px rgba(255,0,85,0.3); } }
-.chat-bot { background: rgba(0,240,255,0.05); border: 1px solid rgba(0,240,255,0.12); border-left: 3px solid #00f0ff; margin-right: 20%; border-radius: 10px; padding: 0.7rem; margin: 5px 0; }
-.chat-lead { background: rgba(255,0,85,0.05); border: 1px solid rgba(255,0,85,0.12); border-right: 3px solid #ff0055; margin-left: 20%; border-radius: 10px; padding: 0.7rem; margin: 5px 0; text-align: right; }
-.log-line { font-family: 'JetBrains Mono', monospace; font-size: 0.6rem; padding: 4px 0; border-bottom: 1px solid rgba(255,255,255,0.015); }
-.dot { display: inline-block; width: 6px; height: 6px; border-radius: 50%; margin-right: 5px; }
-.dg { background: #4ade80; box-shadow: 0 0 6px rgba(74,222,128,0.4); }
-.db { background: #00f0ff; box-shadow: 0 0 6px rgba(0,240,255,0.4); animation: blink 1.5s infinite; }
-.dr { background: #ff0055; box-shadow: 0 0 6px rgba(255,0,85,0.4); }
-.dy { background: #ffd700; box-shadow: 0 0 6px rgba(255,215,0,0.4); }
-@keyframes blink { 0%,100% { opacity: 1; } 50% { opacity: 0.3; } }
-.section-label { font-family: 'JetBrains Mono', monospace; font-size: 0.5rem; letter-spacing: 2px; color: #445; text-transform: uppercase; }
-div[data-baseweb="select"] > div { background: rgba(10,12,26,0.9) !important; border-color: rgba(0,240,255,0.08) !important; border-radius: 6px !important; }
-.stProgress > div > div > div { background: linear-gradient(90deg, #00f0ff, #0066ff) !important; }
-::-webkit-scrollbar { width: 4px; }
-::-webkit-scrollbar-track { background: #08080f; }
-::-webkit-scrollbar-thumb { background: rgba(0,240,255,0.15); border-radius: 2px; }
-.clock { font-family: 'Orbitron', monospace; font-size: 1.2rem; color: rgba(0,240,255,0.5); letter-spacing: 4px; text-align: right; }
-.clock-label { font-family: 'JetBrains Mono', monospace; font-size: 0.5rem; color: #334; letter-spacing: 2px; text-transform: uppercase; text-align: right; }
-.market-box { background: rgba(10,12,26,0.3); border: 1px solid rgba(0,240,255,0.04); border-radius: 8px; padding: 0.5rem 1rem; }
-.market-label { font-family: 'JetBrains Mono', monospace; font-size: 0.45rem; color: #556; text-transform: uppercase; letter-spacing: 1.5px; }
-.market-val { font-family: 'Orbitron', monospace; font-size: 0.8rem; color: #00f0ff; }
-.market-sub { font-family: 'JetBrains Mono', monospace; font-size: 0.45rem; color: #445; }
-</style>'''
-
-BG = u'''<canvas id="bg" style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-1;pointer-events:none"></canvas>
-<div style="position:fixed;top:0;left:0;width:100%;height:100%;z-index:-0.9;pointer-events:none;background:linear-gradient(180deg,rgba(8,8,15,0.92) 0%,rgba(8,8,15,0.15) 25%,transparent 40%,transparent 60%,rgba(8,8,15,0.15) 75%,rgba(8,8,15,0.92) 100%)"></div>
-<div style="position:fixed;top:0;left:0;width:100%;height:3px;z-index:-0.8;pointer-events:none;background:linear-gradient(90deg,transparent,#00f0ff,transparent);opacity:0.15"></div>
-<script>
-(function(){
-  var c=document.getElementById('bg'),ctx=c.getContext('2d');
-  var w=c.width=window.innerWidth,h=c.height=window.innerHeight;
-  window.addEventListener('resize',function(){w=c.width=window.innerWidth;h=c.height=window.innerHeight});
-  var t=0;
-  function anim(){
-    t+=0.003;
-    ctx.clearRect(0,0,w,h);
-    var vx=w/2,vy=h*0.25;
-    ctx.strokeStyle='rgba(0,240,255,0.025)';
-    ctx.lineWidth=0.7;
-    for(var y=h;y>vy;){ctx.beginPath();ctx.moveTo(0,y);ctx.lineTo(w,y);ctx.stroke();y-=Math.pow((y-vy)/(h-vy),0.5)*38+2.5;}
-    for(var x=-w;x<w*2;x+=45){ctx.beginPath();ctx.moveTo(vx,vy);ctx.lineTo(x,h);ctx.stroke();}
-    ctx.strokeStyle='rgba(255,0,85,0.012)';
-    var ox=Math.sin(t)*15;
-    for(var y=h;y>vy;){ctx.beginPath();ctx.moveTo(ox,y);ctx.lineTo(w+ox,y);ctx.stroke();y-=Math.pow((y-vy)/(h-vy),0.5)*45+3;}
-    for(var i=0;i<4;i++){var x=vx+Math.sin(t+i*1.5)*(w*0.25);var g=ctx.createRadialGradient(x,vy,0,x,vy,25);g.addColorStop(0,'rgba(0,240,255,0.035)');g.addColorStop(1,'transparent');ctx.fillStyle=g;ctx.beginPath();ctx.arc(x,vy,25,0,Math.PI*2);ctx.fill();}
-    requestAnimationFrame(anim);
-  }
-  anim();
-})();
-</script>'''
+st.set_page_config(page_title="NIVARA — AREIS", page_icon="🏢", layout="wide", initial_sidebar_state="collapsed")
 
 DB_HOST = os.environ.get("DB_HOST", "localhost")
 DB_PORT = int(os.environ.get("DB_PORT", "5432"))
@@ -228,23 +107,31 @@ def simulate_activity():
         conn.close()
 
 st.markdown(CSS, unsafe_allow_html=True)
-st.markdown(BG, unsafe_allow_html=True)
 
 simulate_activity()
 
-# ── Header ──
+# ── Hero header ──
 h1, h2 = st.columns([3, 1])
 with h1:
-    st.markdown(f'<div style="margin-top:0.2rem">{LOGO_SVG}</div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="hero-banner">'
+        '<div class="hero-tag">Chennai · Andhra Pradesh · Autonomous Real Estate AI</div>'
+        f'{LOGO_SVG}'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 with h2:
-    st.markdown('<div class="clock-label">SYSTEM TIME</div>', unsafe_allow_html=True)
-    st.markdown('<div id="clock" class="clock">--:--:--</div>', unsafe_allow_html=True)
-    st.markdown('<div class="clock-label" style="margin-top:2px">CHENNAI / IST</div>', unsafe_allow_html=True)
-
-st.markdown('<div class="title-bar"></div>', unsafe_allow_html=True)
+    st.markdown(
+        '<div class="hero-banner" style="text-align:right;padding:1.8rem 1.4rem">'
+        '<div class="hero-clock-label">System Time · IST</div>'
+        '<div id="clock" class="hero-clock">--:--:--</div>'
+        '<div class="hero-clock-label" style="margin-top:6px">12 AI Agents Active</div>'
+        '</div>',
+        unsafe_allow_html=True,
+    )
 
 # ── Market Overview ──
-st.markdown('<div class="section-label" style="margin-bottom:6px">MARKET OVERVIEW</div>', unsafe_allow_html=True)
+st.markdown('<div class="section-title">Market Overview</div>', unsafe_allow_html=True)
 m1, m2, m3, m4 = st.columns(4)
 market_data = [
     ("Chennai Avg. Price", "\u20b97,850/sq.ft", "+12.3% YoY"),
@@ -254,9 +141,10 @@ market_data = [
 ]
 for i, (mcol, (label, val, sub)) in enumerate(zip([m1, m2, m3, m4], market_data)):
     with mcol:
-        st.markdown(f'<div class="market-box"><div class="market-label">{label}</div><div class="market-val">{val}</div><div class="market-sub">{sub}</div></div>', unsafe_allow_html=True)
+        st.markdown(market_chip(label, val, sub), unsafe_allow_html=True)
 
 # ── Stats ──
+st.markdown('<div class="section-title">Performance Metrics</div>', unsafe_allow_html=True)
 lq = q("SELECT count(*) c FROM leads", one=True)
 hq = q("SELECT count(*) c FROM leads WHERE score >= 70", one=True)
 pq = q("SELECT count(*) c FROM social_posts", one=True)
@@ -267,28 +155,29 @@ rq = q("SELECT COALESCE(SUM(reach),0) r FROM social_posts", one=True)
 tq = q("SELECT count(*) c FROM crm_activity", one=True)
 
 stats = [
-    (lq["c"], "Total Leads", "Active targets", "cyan", ""),
-    (hq["c"], "Hot Leads", "Score \u2265 70", "pink", "pink"),
-    (f'{aq["a"]}', "Avg Score", "Lead quality", "gold", "gold"),
-    (cq["c"], "Converted", "Deals closed", "green", "green"),
-    (pq["c"], "Posts", "Published", "gold", "gold"),
-    (f'{rq["r"]:,}', "Total Reach", "Social impressions", "purple", "purple"),
-    (bq["c"], "Agent Runs", "Executions", "cyan", ""),
-    (tq["c"], "CRM Actions", "Activities", "green", "green"),
+    (lq["c"], "Total Leads", "Active targets", "red"),
+    (hq["c"], "Hot Leads", "Score ≥ 70", "red"),
+    (f'{aq["a"]}', "Avg Score", "Lead quality", "gold"),
+    (cq["c"], "Converted", "Deals closed", "green"),
+    (pq["c"], "Posts", "Published", "gold"),
+    (f'{rq["r"]:,}', "Total Reach", "Social impressions", "navy"),
+    (bq["c"], "Agent Runs", "Executions", "blue"),
+    (tq["c"], "CRM Actions", "Activities", "green"),
 ]
 
 s1, s2, s3, s4 = st.columns(4)
 s5, s6, s7, s8 = st.columns(4)
 all_cols = [s1, s2, s3, s4, s5, s6, s7, s8]
-for col, (val, label, sub, color, extra) in zip(all_cols, stats):
-    css_class = f"stat-box {extra}" if extra else "stat-box"
+for col, (val, label, sub, accent) in zip(all_cols, stats):
     with col:
-        st.markdown(f'<div class="{css_class}"><div class="stat-label" style="color:#{ {"pink":"ff0055","gold":"ffd700","green":"4ade80","purple":"bd00ff"}.get(color, "00f0ff") }">{label}</div><div class="stat-val text-{color}">{val}</div><div class="stat-sub">{sub}</div></div>', unsafe_allow_html=True)
+        st.markdown(stat_card(label, val, sub, accent), unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
 # ── Tabs ──
-t1, t2, t3, t4, t5, t6, t7 = st.tabs([u"\u26A1 ACTIVITY", u"\U0001F6F8 PIPELINE", u"\U0001F4E1 SOCIAL", u"\U0001F3AC MEDIA", u"\U0001F4AC CHAT", u"\U0001F4CA LEADS", u"\u2699 SETTINGS"])
+t1, t2, t3, t4, t5, t6, t7 = st.tabs([
+    "Activity", "Pipeline", "Social", "Media", "Chat", "Leads", "Settings"
+])
 
 # ═══ TAB 1 ═══
 with t1:
@@ -304,10 +193,17 @@ with t1:
     logs = q(sql, tuple(pr))
     if logs:
         for r in logs:
-            dc = "dg" if r["status"]=="success" else "dr" if r["status"]=="error" else "db"
-            cc = "#4ade80" if r["status"]=="success" else "#ff0055" if r["status"]=="error" else "#00f0ff"
+            dot = "dot-ok" if r["status"] == "success" else "dot-err" if r["status"] == "error" else "dot-run"
+            status_color = "#16A34A" if r["status"] == "success" else RED if r["status"] == "error" else "#2563EB"
             detail = r.get("details", "") or ""
-            st.markdown(f'<div class="log-line"><span class="dot {dc}"></span><span style="color:#445;margin-right:8px">[{r["timestamp"].strftime("%H:%M:%S")}]</span><span style="font-family:Orbitron;color:#00f0ff;font-weight:700;margin-right:8px">{r["agent_name"].upper()}</span><span style="color:{cc};font-weight:500;margin-right:10px">{r["action"]}</span><span style="color:rgba(255,255,255,0.45)">{detail[:120]}</span></div>', unsafe_allow_html=True)
+            st.markdown(
+                f'<div class="log-row"><span class="dot {dot}"></span>'
+                f'<span style="color:{SLATE};margin-right:8px">[{r["timestamp"].strftime("%H:%M:%S")}]</span>'
+                f'<span style="font-weight:700;color:{NAVY};margin-right:8px">{r["agent_name"]}</span>'
+                f'<span style="color:{status_color};font-weight:600;margin-right:10px">{r["action"]}</span>'
+                f'<span style="color:#475569">{detail[:120]}</span></div>',
+                unsafe_allow_html=True,
+            )
     else:
         st.info("No activity logs found. Pipeline will auto-generate data.")
 
@@ -320,16 +216,21 @@ with t2:
         for r in pl:
             if r["action"]=="Starting task": running = r["agent_name"]
             elif r["action"]=="Task completed": done.add(r["agent_name"]); running = None if running==r["agent_name"] else running
-    st.markdown('<div style="display:flex;align-items:center;gap:5px;flex-wrap:wrap;padding:0.6rem 0">', unsafe_allow_html=True)
+    st.markdown('<div class="pipeline-wrap">', unsafe_allow_html=True)
     for i, a in enumerate(agents):
-        cls = "done" if a in done else "run" if a==running else "wait"
-        ico = u"\u2B22" if a in done else u"\u2394" if a==running else u"\u2B21"
-        st.markdown(f'<span class="node {cls}">{ico} {a[:10]}</span>', unsafe_allow_html=True)
-        if i < len(agents)-1: st.markdown('<span style="color:rgba(0,240,255,0.1);font-size:0.6rem;margin:0 -2px">\u2192</span>', unsafe_allow_html=True)
+        cls = "done" if a in done else "run" if a == running else "wait"
+        st.markdown(f'<span class="node {cls}">{a}</span>', unsafe_allow_html=True)
+        if i < len(agents) - 1:
+            st.markdown('<span class="pipe-arrow">→</span>', unsafe_allow_html=True)
     st.markdown('</div>', unsafe_allow_html=True)
     if done or running:
-        pct = len(done)/len(agents); st.progress(min(pct, 1.0))
-        st.markdown(f'<p style="font-family:JetBrains Mono;font-size:0.6rem;color:#556;text-align:center;margin:0.3rem 0">{len(done)}/{len(agents)} agents complete \u2014 {int(pct*100)}%</p>', unsafe_allow_html=True)
+        pct = len(done) / len(agents)
+        st.progress(min(pct, 1.0))
+        st.markdown(
+            f'<p style="font-size:0.75rem;color:{SLATE};text-align:center;margin:0.4rem 0">'
+            f'{len(done)}/{len(agents)} agents complete — {int(pct * 100)}%</p>',
+            unsafe_allow_html=True,
+        )
     else:
         st.info("Run pipeline from Settings tab, or wait for auto-simulation.")
     st.markdown("<br>", unsafe_allow_html=True)
@@ -343,10 +244,15 @@ with t2:
             fig = go.Figure()
             fig.add_trace(go.Bar(
                 x=df["Agent"], y=df["Duration_s"],
-                marker=dict(color="#00f0ff", line=dict(color="#00f0ff", width=0.8)),
-                text=[f"{s:.0f}s" for s in df["Duration_s"]], textposition="outside", textfont=dict(color="#00f0ff", size=9)
+                marker=dict(color=RED, line=dict(color=RED_DARK, width=0.5)),
+                text=[f"{s:.0f}s" for s in df["Duration_s"]], textposition="outside",
+                textfont=dict(color=NAVY, size=10),
             ))
-            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",font=dict(family="JetBrains Mono",color="#86868b",size=9),margin=dict(l=10,r=10,t=10,b=20),height=200,xaxis=dict(showgrid=False),yaxis=dict(showgrid=True,gridcolor="rgba(0,240,255,0.05)",title="Seconds"))
+            fig.update_layout(
+                **plotly_layout(height=200),
+                xaxis=dict(showgrid=False),
+                yaxis=dict(showgrid=True, gridcolor="#F1F5F9", title="Seconds"),
+            )
             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
 
 # ═══ TAB 3 ═══
@@ -380,13 +286,21 @@ with t3:
     posts = q(sql, tuple(p2))
     if posts:
         for p in posts:
-            st.markdown(f'<div class="glass" style="margin-bottom:8px"><div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px"><span style="font-family:Orbitron;color:#00f0ff;font-size:0.65rem">{p["platform"].upper()}</span><span style="font-family:JetBrains Mono;font-size:0.5rem;color:#445">{p["published_at"].strftime("%d %b %H:%M")}</span></div><p style="color:#c8d6e5;line-height:1.4;font-size:0.8rem">{p["content"]}</p><div style="margin-top:4px;display:flex;gap:20px;font-size:0.7rem"><span style="font-family:Orbitron;color:#ff0055">{p["reach"]:,} <span style="font-family:JetBrains Mono;font-size:0.45rem;color:#445">REACH</span></span></div></div>', unsafe_allow_html=True)
+            st.markdown(
+                post_card(
+                    p["platform"].upper(),
+                    p["published_at"].strftime("%d %b %H:%M"),
+                    p["content"],
+                    p["reach"],
+                ),
+                unsafe_allow_html=True,
+            )
     else:
         st.info("No posts yet. Click SIMULATE POST to generate one.")
 
 # ═══ TAB 4 — MEDIA (Gemini Veo Photo → Video) ═══
 with t4:
-    st.markdown('<div class="section-label">Site Photo → Gemini Veo Video → Social Post</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Site Photo → Gemini Veo Video → Social Post</div>', unsafe_allow_html=True)
     import base64
     import requests as req
 
@@ -467,16 +381,16 @@ with t4:
                     st.error(f"Error: {e}")
 
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown('<div class="section-label">Media Library</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Media Library</div>', unsafe_allow_html=True)
     media = q("SELECT id, asset_type, status, source_url, output_url, prompt, created_at FROM media_assets ORDER BY created_at DESC LIMIT 20")
     if media:
         for m in media:
             url = m.get("output_url") or m.get("source_url") or ""
             st.markdown(
-                f'<div class="glass" style="margin-bottom:6px">'
-                f'<span style="font-family:Orbitron;color:#00f0ff;font-size:0.6rem">{m["asset_type"].upper()} — {m["status"].upper()}</span>'
-                f'<p style="font-size:0.7rem;color:#667;margin:2px 0">{m.get("prompt","")[:100]}</p>'
-                f'<p style="font-size:0.6rem;color:#445">{url[:80]}</p></div>',
+                f'<div class="card" style="margin-bottom:8px">'
+                f'<span style="font-size:0.72rem;font-weight:700;color:{RED}">{m["asset_type"].upper()} — {m["status"].upper()}</span>'
+                f'<p style="font-size:0.8rem;color:{SLATE};margin:4px 0">{m.get("prompt", "")[:100]}</p>'
+                f'<p style="font-size:0.7rem;color:#94A3B8">{url[:80]}</p></div>',
                 unsafe_allow_html=True,
             )
     else:
@@ -486,7 +400,7 @@ with t4:
 with t5:
     c1, c2 = st.columns([3, 2])
     with c1:
-        st.markdown('<div class="section-label">Conversation Feed</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Conversation Feed</div>', unsafe_allow_html=True)
         ch = q("SELECT ca.*,l.full_name FROM crm_activity ca LEFT JOIN leads l ON l.id=ca.lead_id WHERE ca.activity_type='whatsapp' ORDER BY ca.created_at ASC LIMIT 30")
         if ch:
             for c in ch:
@@ -494,13 +408,23 @@ with t5:
                 title = c.get("title") or ""
                 desc = c.get("description") or ""
                 if bot:
-                    st.markdown(f'<div class="chat-bot"><span style="font-family:JetBrains Mono;font-size:0.45rem;color:#445">AI AGENT</span><br><span style="font-size:0.8rem;font-weight:500">{title}</span><br><span style="font-size:0.65rem;color:#667">{desc[:150]}</span></div>', unsafe_allow_html=True)
+                    st.markdown(
+                        f'<div class="chat-ai"><span style="font-size:0.65rem;color:{SLATE};font-weight:600">AI AGENT</span><br>'
+                        f'<span style="font-size:0.85rem;font-weight:600;color:{NAVY}">{title}</span><br>'
+                        f'<span style="font-size:0.78rem;color:{SLATE}">{desc[:150]}</span></div>',
+                        unsafe_allow_html=True,
+                    )
                 else:
-                    st.markdown(f'<div class="chat-lead"><span style="font-family:JetBrains Mono;font-size:0.45rem;color:#445">{nm}</span><br><span style="font-size:0.8rem;font-weight:500">{title}</span><br><span style="font-size:0.65rem;color:#667">{desc[:150]}</span></div>', unsafe_allow_html=True)
+                    st.markdown(
+                        f'<div class="chat-lead"><span style="font-size:0.65rem;color:{SLATE};font-weight:600">{nm}</span><br>'
+                        f'<span style="font-size:0.85rem;font-weight:600;color:{NAVY}">{title}</span><br>'
+                        f'<span style="font-size:0.78rem;color:{SLATE}">{desc[:150]}</span></div>',
+                        unsafe_allow_html=True,
+                    )
         else:
             st.info("No conversations yet. Auto-simulation will generate chat data.")
     with c2:
-        st.markdown('<div class="section-label">Send Message</div>', unsafe_allow_html=True)
+        st.markdown('<div class="section-title">Send Message</div>', unsafe_allow_html=True)
         leads = q("SELECT id,full_name,phone FROM leads ORDER BY score DESC")
         if leads:
             with st.form("sw"):
@@ -533,13 +457,13 @@ with t6:
             bins=[0,30,50,70,85,101];labels=["Cold","Warm","Interested","Hot","Ready"]
             df["b"]=pd.cut(df["score"],bins=bins,labels=labels,right=False)
             d=df["b"].value_counts().reindex(labels,fill_value=0).reset_index()
-            fig=px.pie(d,values="count",names="b",color_discrete_sequence=["#ff0055","#ffd700","#00f0ff","#bd00ff","#4ade80"])
-            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",font=dict(family="Inter",color="#86868b",size=9),margin=dict(l=10,r=10,t=10,b=10),height=200)
+            fig=px.pie(d,values="count",names="b",color_discrete_sequence=CHART_COLORS[:5])
+            fig.update_layout(**plotly_layout())
             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
         with g2:
             sd=df["status"].value_counts().reset_index()
-            fig=px.bar(sd,x="status",y="count",color_discrete_sequence=["#00f0ff"])
-            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",plot_bgcolor="rgba(0,0,0,0)",font=dict(family="Inter",color="#86868b",size=9),margin=dict(l=10,r=10,t=10,b=10),height=200,xaxis=dict(showgrid=False),yaxis=dict(showgrid=True,gridcolor="rgba(0,240,255,0.05)"))
+            fig=px.bar(sd,x="status",y="count",color_discrete_sequence=[RED])
+            fig.update_layout(**plotly_layout(), xaxis=dict(showgrid=False), yaxis=dict(showgrid=True, gridcolor="#F1F5F9"))
             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
         with g3:
             funnel_stages = ["new","contacted","qualified","nurturing","negotiating","converted"]
@@ -550,16 +474,16 @@ with t6:
             fig = go.Figure(go.Funnel(
                 y=funnel_stages, x=funnel_vals,
                 textposition="inside", textinfo="value",
-                marker=dict(color=["#ff0055","#ffd700","#00f0ff","#bd00ff","#4ade80","#0066ff"])
+                marker=dict(color=CHART_COLORS[:6])
             ))
-            fig.update_layout(paper_bgcolor="rgba(0,0,0,0)",font=dict(family="Inter",color="#86868b",size=9),margin=dict(l=10,r=10,t=10,b=10),height=200,showlegend=False)
+            fig.update_layout(**plotly_layout(), showlegend=False)
             st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
     else:
         st.info("No leads found.")
 
 # ═══ TAB 7 — SETTINGS ═══
 with t7:
-    st.markdown('<div class="section-label">Pipeline Controls</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Pipeline Controls</div>', unsafe_allow_html=True)
     c1, c2, c3, c4 = st.columns(4)
     with c1:
         if st.button(u"\u25B6 FULL PIPELINE", type="primary"):
@@ -581,7 +505,7 @@ with t7:
     with c4:
         if st.button(u"\u27F3 REFRESH"): st.rerun()
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown('<div class="section-label">Manual Agent Dispatch</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">Manual Agent Dispatch</div>', unsafe_allow_html=True)
     aa = ["MarketAnalyst","CompetitorSpy","ContentStrategist","SEOAgent","VisualDesigner","SocialMediaManager","LeadQualification","WhatsAppAgent","AppointmentScheduler","CRM","Analytics","CEO"]
     ac = st.columns(4)
     for i, a in enumerate(aa):
@@ -594,34 +518,49 @@ with t7:
                     st.rerun()
                 except Exception as e: st.error(str(e))
     st.markdown("<br>", unsafe_allow_html=True)
-    st.markdown('<div class="section-label">System Status</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-title">System Status</div>', unsafe_allow_html=True)
     s1, s2, s3, s4 = st.columns(4)
+
+    def status_card(name: str, online: bool | None) -> str:
+        if online is True:
+            pill, label = "status-online", "● Online"
+        elif online is False:
+            pill, label = "status-offline", "● Offline"
+        else:
+            pill, label = "status-warn", "● Unreachable"
+        return (
+            f'<div class="card" style="text-align:center">'
+            f'<div class="stat-label">{name}</div>'
+            f'<div class="status-pill {pill}" style="margin-top:0.5rem">{label}</div></div>'
+        )
+
     with s1:
-        ok = db()
-        st.markdown(f'<div class="glass" style="text-align:center"><div class="stat-label" style="color:#00f0ff">POSTGRES</div><div style="font-family:Orbitron;font-size:0.85rem;margin:0.2rem 0;color:{"#4ade80" if ok else "#ff0055"}">{"\u25CF ONLINE" if ok else "\u25CF OFFLINE"}</div></div>', unsafe_allow_html=True)
+        st.markdown(status_card("PostgreSQL", bool(db())), unsafe_allow_html=True)
     with s2:
         try:
-            import requests; r = requests.get(f"{ORCH_URL}/health", timeout=5)
-            st.markdown(f'<div class="glass" style="text-align:center"><div class="stat-label" style="color:#ff0055">ORCHESTRATOR</div><div style="font-family:Orbitron;font-size:0.85rem;margin:0.2rem 0;color:{"#4ade80" if r.ok else "#ff0055"}">{"\u25CF ONLINE" if r.ok else "\u25CF ERROR"}</div></div>', unsafe_allow_html=True)
-        except: st.markdown(f'<div class="glass" style="text-align:center"><div class="stat-label" style="color:#ff0055">ORCHESTRATOR</div><div style="font-family:Orbitron;font-size:0.85rem;margin:0.2rem 0;color:#ffd700">\u25CF UNREACHABLE</div></div>', unsafe_allow_html=True)
+            import requests
+            r = requests.get(f"{ORCH_URL}/health", timeout=5)
+            st.markdown(status_card("Orchestrator", r.ok), unsafe_allow_html=True)
+        except Exception:
+            st.markdown(status_card("Orchestrator", None), unsafe_allow_html=True)
     with s3:
+        ollama_url = os.environ.get("OLLAMA_BASE_URL", "http://localhost:11434")
         try:
-            import requests; r = requests.get("http://host.docker.internal:11434/api/tags", timeout=5)
-            st.markdown(f'<div class="glass" style="text-align:center"><div class="stat-label" style="color:#ffd700">OLLAMA</div><div style="font-family:Orbitron;font-size:0.85rem;margin:0.2rem 0;color:{"#4ade80" if r.ok else "#ff0055"}">{"\u25CF ONLINE" if r.ok else "\u25CF ERROR"}</div></div>', unsafe_allow_html=True)
-        except: st.markdown(f'<div class="glass" style="text-align:center"><div class="stat-label" style="color:#ffd700">OLLAMA</div><div style="font-family:Orbitron;font-size:0.85rem;margin:0.2rem 0;color:#ffd700">\u25CF UNREACHABLE</div></div>', unsafe_allow_html=True)
+            import requests
+            r = requests.get(f"{ollama_url}/api/tags", timeout=5)
+            st.markdown(status_card("Ollama", r.ok), unsafe_allow_html=True)
+        except Exception:
+            st.markdown(status_card("Ollama", None), unsafe_allow_html=True)
     with s4:
-        st.markdown(f'<div class="glass" style="text-align:center"><div class="stat-label" style="color:#667">DASHBOARD</div><div style="font-family:Orbitron;font-size:0.85rem;margin:0.2rem 0;color:#4ade80">\u25CF ACTIVE</div></div>', unsafe_allow_html=True)
+        st.markdown(status_card("Dashboard", True), unsafe_allow_html=True)
 
 # ── Clock JS ──
-st.markdown(u'''<script>
+st.markdown('''<script>
 (function(){var e=document.getElementById('clock');if(!e)return;
 function u(){var n=new Date();e.textContent=n.toTimeString().split(' ')[0]}
 u();setInterval(u,1000)})();
 </script>
-<style>
-@keyframes horizonPulse{0%,100%{opacity:0.08}50%{opacity:0.15}}
-</style>
-<meta http-equiv="refresh" content="20">
+<meta http-equiv="refresh" content="30">
 ''', unsafe_allow_html=True)
 
 # ── Seed demo data on first run ──
