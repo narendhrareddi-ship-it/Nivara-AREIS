@@ -45,6 +45,8 @@ ORCHESTRATOR_URL = "http://localhost:8000"
 VEO_MCP_URL = "http://localhost:8006"
 ```
 
+For production (after Render deploy), use HTTPS URLs — see [`docs/PRODUCTION.md`](PRODUCTION.md).
+
 Template: [`dashboard/.streamlit/secrets.toml.example`](../dashboard/.streamlit/secrets.toml.example)
 
 ### 5. Deploy
