@@ -11,17 +11,19 @@ services:
     healthCheckPath: /health
     envVars:
       - key: DB_HOST
-        sync: false
+        value: aws-1-ap-south-1.pooler.supabase.com
       - key: DB_PORT
         value: "5432"
       - key: DB_NAME
         value: postgres
       - key: DB_USER
-        sync: false
+        value: postgres.mxjhwjxxqtkwsrwtqwuc
       - key: DB_PASSWORD
         sync: false
       - key: DB_SSLMODE
         value: require
+      - key: SUPABASE_URL
+        value: https://mxjhwjxxqtkwsrwtqwuc.supabase.co
       - key: OLLAMA_BASE_URL
         sync: false
       - key: OLLAMA_MODEL
@@ -91,13 +93,13 @@ services:
           type: web
           property: hostport
       - key: DB_HOST
-        sync: false
+        value: aws-1-ap-south-1.pooler.supabase.com
       - key: DB_PORT
         value: "5432"
       - key: DB_NAME
         value: postgres
       - key: DB_USER
-        sync: false
+        value: postgres.mxjhwjxxqtkwsrwtqwuc
       - key: DB_PASSWORD
         sync: false
       - key: DB_SSLMODE
@@ -114,13 +116,13 @@ services:
       - key: SOCIAL_MCP_PORT
         value: "8003"
       - key: DB_HOST
-        sync: false
+        value: aws-1-ap-south-1.pooler.supabase.com
       - key: DB_PORT
         value: "5432"
       - key: DB_NAME
         value: postgres
       - key: DB_USER
-        sync: false
+        value: postgres.mxjhwjxxqtkwsrwtqwuc
       - key: DB_PASSWORD
         sync: false
       - key: DB_SSLMODE
