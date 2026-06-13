@@ -79,11 +79,20 @@ Streamlit Cloud runs the **dashboard only**. These services must be reachable ov
 | Service | Used for | Deploy separately on |
 |---------|----------|----------------------|
 | PostgreSQL | Leads, posts, media | Supabase (recommended) or Render Postgres |
-| `veo-mcp` | Media tab (photo → video) | Render / Railway / Fly.io |
-| `social-mcp` | Social publishing | Render / Railway |
-| Orchestrator | Pipeline controls | Render / Railway |
+| `veo-mcp` | Media tab (photo → video) | Render Blueprint ([`render.yaml`](../render.yaml)) |
+| `social-mcp` | Social publishing | Render Blueprint |
+| Orchestrator | Pipeline controls | Render Blueprint |
 
 Use **Supabase** for the database — the project already has migrations in `supabase/migrations/`.
+
+### One-click Render deploy
+
+1. Go to [Render Blueprints](https://dashboard.render.com/blueprints) → **New Blueprint Instance**.
+2. Connect `narendhrareddi-ship-it/Nivara-AREIS`.
+3. Fill in secret env vars (`DB_*`, `GEMINI_API_KEY`, `SUPABASE_SERVICE_ROLE_KEY`, etc.).
+4. Copy deployed URLs into Streamlit secrets as `ORCHESTRATOR_URL` and `VEO_MCP_URL`.
+
+See [`docs/PHASE3.md`](PHASE3.md) for full Phase 3 setup.
 
 ---
 

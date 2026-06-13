@@ -25,5 +25,5 @@ class ContentStrategistAgent(BaseAgent):
         strategy = await self.llm.generate(prompt, system=self.system_prompt(region))
         return {
             "agent_outputs": {**state.get("agent_outputs", {}), self.name: strategy},
-            "next_agent": "SEOAgent",
+            "next_agent": "Copywriter",
         }

@@ -1,4 +1,4 @@
-"""LangGraph orchestrator connecting all Phase 1 agents."""
+"""LangGraph orchestrator connecting all Phase 1–3 agents."""
 
 from __future__ import annotations
 
@@ -12,9 +12,13 @@ from nivara.agents import (
     CEOAgent,
     CompetitorSpyAgent,
     ContentStrategistAgent,
+    CopywriterAgent,
     CRMAgent,
+    EmailMarketerAgent,
     LeadQualificationAgent,
+    LocationScoutAgent,
     MarketAnalystAgent,
+    PaidAdsManagerAgent,
     SEOAgent,
     SocialMediaManagerAgent,
     WhatsAppAgent,
@@ -29,13 +33,37 @@ logger = logging.getLogger(__name__)
 
 AgentName = Literal[
     "MarketAnalyst",
+    "LocationScout",
     "CompetitorSpy",
     "ContentStrategist",
+    "Copywriter",
     "SEOAgent",
     "VisualDesigner",
     "SocialMediaManager",
+    "PaidAdsManager",
     "LeadQualification",
     "WhatsAppAgent",
+    "EmailMarketer",
+    "AppointmentScheduler",
+    "CRM",
+    "Analytics",
+    "CEO",
+]
+
+# Default execution order for subset runs and dashboard pipeline display
+PIPELINE_ORDER: list[str] = [
+    "MarketAnalyst",
+    "LocationScout",
+    "CompetitorSpy",
+    "ContentStrategist",
+    "Copywriter",
+    "SEOAgent",
+    "VisualDesigner",
+    "SocialMediaManager",
+    "PaidAdsManager",
+    "LeadQualification",
+    "WhatsAppAgent",
+    "EmailMarketer",
     "AppointmentScheduler",
     "CRM",
     "Analytics",
@@ -53,13 +81,17 @@ class AgentOrchestrator:
         self.crm = crm or SupabaseCRM()
         self._agents: dict[str, Any] = {
             "MarketAnalyst": MarketAnalystAgent(self.llm, self.crm),
+            "LocationScout": LocationScoutAgent(self.llm, self.crm),
             "CompetitorSpy": CompetitorSpyAgent(self.llm, self.crm),
             "ContentStrategist": ContentStrategistAgent(self.llm, self.crm),
+            "Copywriter": CopywriterAgent(self.llm, self.crm),
             "SEOAgent": SEOAgent(self.llm, self.crm),
             "VisualDesigner": VisualDesignerAgent(self.llm, self.crm),
             "SocialMediaManager": SocialMediaManagerAgent(self.llm, self.crm),
+            "PaidAdsManager": PaidAdsManagerAgent(self.llm, self.crm),
             "LeadQualification": LeadQualificationAgent(self.llm, self.crm),
             "WhatsAppAgent": WhatsAppAgent(self.llm, self.crm),
+            "EmailMarketer": EmailMarketerAgent(self.llm, self.crm),
             "AppointmentScheduler": AppointmentSchedulerAgent(self.llm, self.crm),
             "CRM": CRMAgent(self.llm, self.crm),
             "Analytics": AnalyticsAgent(self.llm, self.crm),
@@ -71,13 +103,11 @@ class AgentOrchestrator:
         async def node(state: AgentState) -> dict[str, Any]:
             agent = self._agents[agent_name]
             logger.info("Running agent: %s", agent_name)
-            
-            # Log start of action
+
             agent.log_action("Starting task", "processing", f"Agent {agent_name} is now active.")
-            
+
             try:
                 result = await agent.run(state)
-                # Log completion
                 agent.log_action("Task completed", "success", f"Agent {agent_name} finished execution.")
                 return result
             except Exception as e:

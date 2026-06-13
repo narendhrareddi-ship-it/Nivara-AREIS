@@ -23,7 +23,7 @@ class WhatsAppAgent(BaseAgent):
         if not leads:
             return {
                 "agent_outputs": {**state.get("agent_outputs", {}), self.name: "No leads to process for WhatsApp nurturing."},
-            "next_agent": "AppointmentScheduler",
+                "next_agent": "EmailMarketer",
             }
 
         results = []
@@ -60,5 +60,5 @@ class WhatsAppAgent(BaseAgent):
         
         return {
             "agent_outputs": {**state.get("agent_outputs", {}), self.name: strategy},
-            "next_agent": "CRM",
+            "next_agent": "EmailMarketer",
         }

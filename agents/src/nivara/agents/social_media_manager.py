@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import os
+import re
 from typing import Any
 
 import httpx
@@ -107,7 +108,7 @@ class SocialMediaManagerAgent(BaseAgent):
                     **state.get("agent_outputs", {}),
                     self.name: "No content strategy or videos available to publish.",
                 },
-                "next_agent": "LeadQualification",
+                "next_agent": "PaidAdsManager",
             }
 
         caption_base = ""
@@ -181,5 +182,5 @@ class SocialMediaManagerAgent(BaseAgent):
 
         return {
             "agent_outputs": {**state.get("agent_outputs", {}), self.name: summary},
-            "next_agent": "LeadQualification",
+            "next_agent": "PaidAdsManager",
         }

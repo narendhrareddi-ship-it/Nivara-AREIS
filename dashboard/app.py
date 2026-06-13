@@ -49,13 +49,17 @@ def _val(row, key, default=0):
 
 RE_AGENTS = [
     ("MarketAnalyst", "Analyzing Chennai property market trends", "Market report: OMR prices up 11% YoY, ECR demand rising"),
+    ("LocationScout", "Scouting OMR, ECR, and Amaravati micro-markets", "Corridor report: Sholinganallur and GST Road top demand zones"),
     ("CompetitorSpy", "Scanning competitor real estate listings", "3 new competitor projects detected in Sholinganallur"),
     ("ContentStrategist", "Generating luxury property content", "Content calendar for Q3 luxury segment created"),
+    ("Copywriter", "Writing ad copy and nurture sequences", "Meta/Google ad variants and email drip copy ready"),
     ("SEOAgent", "Optimizing property pages for search", "12 property keywords now rank in top 20"),
-    ("SocialMediaManager", "Scheduling property showcase posts", "Posts scheduled across Facebook, Instagram, LinkedIn"),
     ("VisualDesigner", "Generating cinematic videos from site photos", "Gemini Veo videos created for property listings"),
+    ("SocialMediaManager", "Scheduling property showcase posts", "Posts scheduled across Facebook, Instagram, LinkedIn"),
+    ("PaidAdsManager", "Optimizing Google and Meta ad spend", "Budget rebalanced toward high-CPL corridors"),
     ("LeadQualification", "Scoring incoming property inquiries", "2 hot leads, 3 warm leads identified"),
     ("WhatsAppAgent", "Sending property recommendations", "Campaign delivered to 38 contacts, 12 replies"),
+    ("EmailMarketer", "Sending drip campaigns and newsletters", "Welcome sequence queued for 5 leads with email"),
     ("AppointmentScheduler", "Scheduling site visits", "4 site visits confirmed for this week"),
     ("CRM", "Syncing lead data to PostgreSQL", "CRM synchronized \u2014 7 records updated"),
     ("Analytics", "Compiling performance metrics", "Dashboard metrics refreshed, 15% MoM growth"),
@@ -237,7 +241,7 @@ with t1:
 
 # ═══ TAB 2 ═══
 with t2:
-    agents = ["MarketAnalyst","CompetitorSpy","ContentStrategist","SEOAgent","VisualDesigner","SocialMediaManager","LeadQualification","WhatsAppAgent","AppointmentScheduler","CRM","Analytics","CEO"]
+    agents = ["MarketAnalyst","LocationScout","CompetitorSpy","ContentStrategist","Copywriter","SEOAgent","VisualDesigner","SocialMediaManager","PaidAdsManager","LeadQualification","WhatsAppAgent","EmailMarketer","AppointmentScheduler","CRM","Analytics","CEO"]
     pl = q("SELECT agent_name,action,status,timestamp FROM bot_logs WHERE timestamp>=COALESCE((SELECT MAX(timestamp) FROM bot_logs WHERE agent_name='MarketAnalyst' AND action='Starting task'),now()-interval'1 hour') ORDER BY timestamp ASC")
     done = set(); running = None
     if pl:

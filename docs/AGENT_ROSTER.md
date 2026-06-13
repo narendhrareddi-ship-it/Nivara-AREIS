@@ -1,65 +1,65 @@
 # NIVARA REALTY — Agent Roster (20 Agents)
 
-Full digital marketing agency architecture. Phase 1 implements 7 core agents; remaining 13 are documented stubs for future phases.
+Full digital marketing agency architecture. Phases 1–3 implement 16 agents; 4 executive/specialist stubs remain for Phase 4.
 
 ## Executive Layer
 
-| # | Agent | Role | Phase 1 |
-|---|-------|------|---------|
+| # | Agent | Role | Status |
+|---|-------|------|--------|
 | 1 | **CEO** | Strategic synthesis, daily briefings, budget decisions | ✅ Implemented |
-| 2 | **COO** | Operations, workflow optimization, SLA monitoring | 🔲 Stub |
-| 3 | **CMO** | Brand strategy, campaign portfolio management | 🔲 Stub |
+| 2 | **COO** | Operations, workflow optimization, SLA monitoring | 🔲 Stub (Phase 4) |
+| 3 | **CMO** | Brand strategy, campaign portfolio management | 🔲 Stub (Phase 4) |
 
 ## Market Intelligence
 
-| # | Agent | Role | Phase 1 |
-|---|-------|------|---------|
+| # | Agent | Role | Status |
+|---|-------|------|--------|
 | 4 | **MarketAnalyst** | Chennai/Andhra trends, pricing, demand signals | ✅ Implemented |
 | 5 | **CompetitorSpy** | Competitor projects, pricing, ad monitoring | ✅ Implemented |
-| 6 | **LocationScout** | Micro-market analysis (OMR, ECR, Amaravati corridors) | 🔲 Stub |
-| 7 | **RegulatoryWatch** | RERA/CRDA compliance tracking | 🔲 Stub |
+| 6 | **LocationScout** | Micro-market analysis (OMR, ECR, Amaravati corridors) | ✅ Phase 3 |
+| 7 | **RegulatoryWatch** | RERA/CRDA compliance tracking | 🔲 Stub (Phase 4) |
 
 ## Content & Creative
 
-| # | Agent | Role | Phase 1 |
-|---|-------|------|---------|
+| # | Agent | Role | Status |
+|---|-------|------|--------|
 | 8 | **ContentStrategist** | Content calendar, messaging, Tamil/English mix | ✅ Implemented |
-| 9 | **Copywriter** | Ad copy, landing pages, email sequences | 🔲 Stub |
+| 9 | **Copywriter** | Ad copy, landing pages, email sequences | ✅ Phase 3 |
 | 10 | **VisualDesigner** | Image/video briefs, Gemini Veo photo-to-video | ✅ Implemented |
 | 11 | **SEOAgent** | Local SEO, Google Business, schema markup | ✅ Implemented |
 
 ## Lead & Sales
 
-| # | Agent | Role | Phase 1 |
-|---|-------|------|---------|
+| # | Agent | Role | Status |
+|---|-------|------|--------|
 | 12 | **LeadQualification** | Score leads, match to projects | ✅ Implemented |
 | 13 | **CRM** | Lifecycle management, follow-ups | ✅ Implemented |
-| 14 | **SalesCoach** | Objection handling, negotiation scripts | 🔲 Stub |
+| 14 | **SalesCoach** | Objection handling, negotiation scripts | 🔲 Stub (Phase 4) |
 | 15 | **AppointmentScheduler** | Site visit and call scheduling | ✅ Implemented |
 
 ## Channels & Analytics
 
-| # | Agent | Role | Phase 1 |
-|---|-------|------|---------|
+| # | Agent | Role | Status |
+|---|-------|------|--------|
 | 16 | **Analytics** | Campaign ROI, CPL, channel performance | ✅ Implemented |
 | 17 | **SocialMediaManager** | FB/IG/LinkedIn/X posting with video support | ✅ Implemented |
-| 18 | **PaidAdsManager** | Google/Meta ad optimization | 🔲 Stub |
+| 18 | **PaidAdsManager** | Google/Meta ad optimization | ✅ Phase 3 |
 | 19 | **WhatsAppAgent** | Conversational lead nurturing | ✅ Implemented |
-| 20 | **EmailMarketer** | Drip campaigns, newsletters | 🔲 Stub |
+| 20 | **EmailMarketer** | Drip campaigns, newsletters | ✅ Phase 3 |
 
-## Phase 1 Agent Graph (updated Phase 2)
+## Agent Graph (Phase 3)
 
 ```
-MarketAnalyst → CompetitorSpy → ContentStrategist → SEOAgent → VisualDesigner
-  → SocialMediaManager → LeadQualification → WhatsAppAgent → AppointmentScheduler
+MarketAnalyst → LocationScout → CompetitorSpy → ContentStrategist → Copywriter
+  → SEOAgent → VisualDesigner → SocialMediaManager → PaidAdsManager
+  → LeadQualification → WhatsAppAgent → EmailMarketer → AppointmentScheduler
   → CRM → Analytics → CEO
 ```
 
-## Stub Agent Plan (Phase 3-4)
+## Stub Agent Plan (Phase 4)
 
 | Phase | Agents to Implement |
 |-------|---------------------|
-| **Phase 3** | PaidAdsManager, Copywriter, LocationScout, EmailMarketer |
 | **Phase 4** | COO, CMO, SalesCoach, RegulatoryWatch |
 
 ## Agent ↔ MCP Mapping
@@ -70,4 +70,6 @@ MarketAnalyst → CompetitorSpy → ContentStrategist → SEOAgent → VisualDes
 | CompetitorSpy | browser-mcp | scrape_competitor, search_listings |
 | VisualDesigner | veo-mcp | upload_site_photo, photo_to_video |
 | SocialMediaManager | social-mcp, veo-mcp | publish_post, publish_video_to_social |
+| PaidAdsManager | — | CRM campaigns + ad_performance tables |
+| EmailMarketer | — | CRM activity log (+ optional EMAIL_API_URL) |
 | WhatsAppAgent | whatsapp-mcp | handle_message, score_lead |

@@ -1,0 +1,105 @@
+# Render Blueprint — NIVARA backend services
+# https://render.com/docs/blueprint-spec
+
+services:
+  - type: web
+    name: nivara-orchestrator
+    runtime: docker
+    dockerfilePath: ./agents/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: postgres
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+      - key: OLLAMA_BASE_URL
+        sync: false
+      - key: OLLAMA_MODEL
+        value: llama3.2
+      - key: VEO_MCP_URL
+        fromService:
+          name: nivara-veo-mcp
+          type: web
+          property: hostport
+      - key: SOCIAL_MCP_URL
+        fromService:
+          name: nivara-social-mcp
+          type: web
+          property: hostport
+
+  - type: web
+    name: nivara-veo-mcp
+    runtime: docker
+    dockerfilePath: ./mcp-servers/veo-mcp/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    disk:
+      name: veo-media
+      mountPath: /app/media_storage
+      sizeGB: 1
+    envVars:
+      - key: VEO_MCP_PORT
+        value: "8006"
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: VEO_MOCK
+        value: "false"
+      - key: VEO_MODEL
+        value: veo-3.1-generate-preview
+      - key: USE_SUPABASE_STORAGE
+        value: "true"
+      - key: SUPABASE_URL
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_STORAGE_BUCKET
+        value: media
+      - key: MEDIA_STORAGE_PATH
+        value: /app/media_storage
+      - key: MEDIA_PUBLIC_BASE_URL
+        sync: false
+      - key: SOCIAL_MCP_URL
+        fromService:
+          name: nivara-social-mcp
+          type: web
+          property: hostport
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: postgres
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false
+
+  - type: web
+    name: nivara-social-mcp
+    runtime: docker
+    dockerfilePath: ./mcp-servers/social-mcp/Dockerfile
+    dockerContext: .
+    plan: free
+    healthCheckPath: /health
+    envVars:
+      - key: SOCIAL_MCP_PORT
+        value: "8003"
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: postgres
+      - key: DB_USER
+        sync: false
+      - key: DB_PASSWORD
+        sync: false

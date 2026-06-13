@@ -23,6 +23,7 @@ logger = logging.getLogger(__name__)
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..", "agents", "src"))
 from nivara.db.supabase_client import SupabaseCRM
+from nivara.integrations.storage_client import SupabaseStorage
 from nivara.integrations.veo_client import VeoClient
 
 app = FastAPI(title="NIVARA Gemini Veo MCP", version="0.1.0")
@@ -31,6 +32,7 @@ MEDIA_DIR = Path(os.getenv("MEDIA_STORAGE_PATH", "media_storage"))
 MEDIA_DIR.mkdir(parents=True, exist_ok=True)
 MEDIA_PUBLIC_BASE = os.getenv("MEDIA_PUBLIC_BASE_URL", "http://localhost:8006/media")
 SOCIAL_MCP_URL = os.getenv("SOCIAL_MCP_URL", "http://localhost:8003")
+USE_SUPABASE_STORAGE = os.getenv("USE_SUPABASE_STORAGE", "true").lower() in ("1", "true", "yes")
 
 
 def _get_crm() -> SupabaseCRM:
@@ -41,15 +43,41 @@ def _get_veo() -> VeoClient:
     return VeoClient()
 
 
+def _get_storage() -> SupabaseStorage:
+    return SupabaseStorage()
+
+
 def _public_url(filename: str) -> str:
     return f"{MEDIA_PUBLIC_BASE.rstrip('/')}/{filename}"
 
 
-def _save_file(content: bytes, filename: str) -> str:
+def _save_file(content: bytes, filename: str, content_type: str = "application/octet-stream") -> tuple[str, str, str]:
+    """Returns (stored_name, public_url, provider)."""
+    storage = _get_storage()
+    if USE_SUPABASE_STORAGE and storage.is_configured():
+        uploaded = storage.upload(content, filename, content_type=content_type, folder="photos")
+        return uploaded["filename"], uploaded["public_url"], "supabase"
+
     safe_name = f"{uuid.uuid4().hex[:12]}_{filename}"
     path = MEDIA_DIR / safe_name
     path.write_bytes(content)
-    return safe_name
+    return safe_name, _public_url(safe_name), "local"
+
+
+def _read_image_asset(asset: dict[str, Any]) -> tuple[bytes, str] | None:
+    mime = asset.get("mime_type") or "image/jpeg"
+    storage_path = (asset.get("metadata") or {}).get("storage_path")
+    if storage_path:
+        storage = _get_storage()
+        if storage.is_configured():
+            data = storage.download(storage_path)
+            if data:
+                return data, mime
+
+    filename = asset.get("filename")
+    if filename:
+        return _read_local_image(filename)
+    return None
 
 
 def _read_local_image(filename: str) -> tuple[bytes, str] | None:
@@ -105,6 +133,7 @@ async def _publish_to_social(
 @app.get("/health")
 async def health() -> dict[str, Any]:
     veo = _get_veo()
+    storage = _get_storage()
     return {
         "status": "ok",
         "server": "veo-mcp",
@@ -112,6 +141,8 @@ async def health() -> dict[str, Any]:
         "veo_mock": veo.mock_mode,
         "veo_model": veo.model,
         "media_storage": str(MEDIA_DIR),
+        "supabase_storage": storage.is_configured(),
+        "storage_bucket": storage.bucket if storage.is_configured() else None,
     }
 
 
@@ -132,19 +163,23 @@ async def serve_media(filename: str) -> FileResponse:
 @app.post("/upload")
 async def upload_photo(file: UploadFile = File(...), project_id: str | None = None) -> dict[str, Any]:
     content = await file.read()
-    stored_name = _save_file(content, file.filename or "photo.jpg")
-    public_url = _public_url(stored_name)
+    mime = file.content_type or "image/jpeg"
+    stored_name, public_url, provider = _save_file(content, file.filename or "photo.jpg", content_type=mime)
 
     crm = _get_crm()
+    metadata: dict[str, Any] = {"original_filename": file.filename}
+    if provider == "supabase":
+        metadata["storage_path"] = f"photos/{stored_name}"
+
     record: dict[str, Any] = {
         "asset_type": "photo",
         "status": "uploaded",
         "source_url": public_url,
         "filename": stored_name,
-        "mime_type": file.content_type or "image/jpeg",
+        "mime_type": mime,
         "file_size_bytes": len(content),
-        "provider": "local",
-        "metadata": {"original_filename": file.filename},
+        "provider": provider,
+        "metadata": metadata,
     }
     if project_id:
         record["project_id"] = project_id
@@ -165,16 +200,20 @@ async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
             if "," in content_b64:
                 content_b64 = content_b64.split(",", 1)[1]
             content = base64.b64decode(content_b64)
-            stored_name = _save_file(content, args["filename"])
-            public_url = _public_url(stored_name)
+            mime = args.get("mime_type", "image/jpeg")
+            stored_name, public_url, provider = _save_file(content, args["filename"], content_type=mime)
+            metadata: dict[str, Any] = {}
+            if provider == "supabase":
+                metadata["storage_path"] = f"photos/{stored_name}"
             record: dict[str, Any] = {
                 "asset_type": "photo",
                 "status": "uploaded",
                 "source_url": public_url,
                 "filename": stored_name,
-                "mime_type": args.get("mime_type", "image/jpeg"),
+                "mime_type": mime,
                 "file_size_bytes": len(content),
-                "provider": "local",
+                "provider": provider,
+                "metadata": metadata,
             }
             if args.get("project_id"):
                 record["project_id"] = args["project_id"]
@@ -194,10 +233,9 @@ async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
                 if not asset:
                     raise HTTPException(404, f"Media asset not found: {media_asset_id}")
                 project_id = project_id or asset.get("project_id")
-                if asset.get("filename"):
-                    local = _read_local_image(asset["filename"])
-                    if local:
-                        image_content, mime_type = local
+                local = _read_image_asset(asset)
+                if local:
+                    image_content, mime_type = local
 
             if not image_content:
                 raise HTTPException(400, "media_asset_id with local file required for Veo generation")

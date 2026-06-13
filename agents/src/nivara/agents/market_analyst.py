@@ -29,5 +29,5 @@ class MarketAnalystAgent(BaseAgent):
         analysis = await self.llm.generate(prompt, system=self.system_prompt(region))
         return {
             "agent_outputs": {**state.get("agent_outputs", {}), self.name: analysis},
-            "next_agent": "CompetitorSpy",
+            "next_agent": "LocationScout",
         }

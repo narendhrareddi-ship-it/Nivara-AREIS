@@ -8,6 +8,7 @@ class Settings(BaseSettings):
 
     supabase_url: str = ""
     supabase_service_role_key: str = ""
+    supabase_storage_bucket: str = "media"
     db_host: str = "localhost"
     db_port: int = 5433
     db_user: str = "nivara"
