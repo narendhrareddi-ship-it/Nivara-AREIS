@@ -194,7 +194,7 @@ def auto_sync_pipeline(
             "agents_expected": len(PIPELINE_AGENTS),
         }
 
-        bootstrap_agent_env(
+    bootstrap_agent_env(
         db_host=db_host,
         db_port=db_port,
         db_name=db_name,

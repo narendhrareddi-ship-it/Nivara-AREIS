@@ -6,7 +6,8 @@ import logging
 from typing import Any
 
 import uvicorn
-from fastapi import Depends, FastAPI
+from fastapi import Depends, FastAPI, Request
+from fastapi.responses import JSONResponse
 from pydantic import BaseModel, Field
 
 from nivara.auth import verify_api_key
@@ -24,6 +25,12 @@ app = FastAPI(
 )
 
 orchestrator = AgentOrchestrator()
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    logger.exception("Unhandled error on %s: %s", request.url.path, exc)
+    return JSONResponse(status_code=500, content={"detail": str(exc), "path": request.url.path})
 
 
 class OrchestrateRequest(BaseModel):

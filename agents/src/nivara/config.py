@@ -16,6 +16,7 @@ class Settings(BaseSettings):
     db_user: str = "nivara"
     db_password: str = "changeme"
     db_name: str = "nivara"
+    db_sslmode: str = "require"
     ollama_base_url: str = "http://localhost:11434"
     ollama_model: str = "llama3.2"
     llm_provider: str = "auto"

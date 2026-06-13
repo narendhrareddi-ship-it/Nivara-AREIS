@@ -9,6 +9,7 @@ RUN pip install --no-cache-dir -e /app/agents
 
 ENV ORCHESTRATOR_HOST=0.0.0.0
 ENV ORCHESTRATOR_PORT=8000
+ENV DB_SSLMODE=require
 EXPOSE 8000
 
 CMD ["nivara-orchestrator"]

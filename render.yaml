@@ -20,6 +20,8 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
+      - key: DB_SSLMODE
+        value: require
       - key: OLLAMA_BASE_URL
         sync: false
       - key: OLLAMA_MODEL
@@ -98,6 +100,8 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
+      - key: DB_SSLMODE
+        value: require
 
   - type: web
     name: nivara-social-mcp
@@ -119,3 +123,5 @@ services:
         sync: false
       - key: DB_PASSWORD
         sync: false
+      - key: DB_SSLMODE
+        value: require
