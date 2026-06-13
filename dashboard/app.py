@@ -120,7 +120,7 @@ def simulate_activity():
         if isinstance(latest, datetime) and (datetime.now() - latest).total_seconds() < 25:
             return
 
-        base = datetime.now() - timedelta(seconds=len(RE_AGENTS) * 7)
+        base = datetime.now() - timedelta(seconds=len(PIPELINE_AGENTS) * 7)
         for i, (agent, start_detail, end_detail) in enumerate(RE_AGENTS):
             t1 = base + timedelta(seconds=i * 7)
             cur.execute("INSERT INTO bot_logs(agent_name,action,status,details,timestamp) VALUES(%s,%s,%s,%s,%s)",
@@ -255,13 +255,6 @@ for col, (val, label, sub, accent) in zip(all_cols, stats):
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-PIPELINE_AGENTS = [
-    "MarketAnalyst", "RegulatoryWatch", "LocationScout", "CompetitorSpy", "CMO",
-    "ContentStrategist", "Copywriter", "SEOAgent", "VisualDesigner", "SocialMediaManager",
-    "PaidAdsManager", "LeadQualification", "SalesCoach", "WhatsAppAgent", "EmailMarketer",
-    "AppointmentScheduler", "CRM", "Analytics", "COO", "CEO",
-]
-
 # ── Tabs ──
 t1, t2, t3, t4, t5, t6, t7 = st.tabs([
     "Activity", "Pipeline", "Social", "Media", "Chat", "Leads", "Settings"
@@ -318,11 +311,19 @@ with t2:
     if done or running:
         pct = len(done) / len(agents)
         st.progress(min(pct, 1.0))
+        pending = [a for a in agents if a not in done and a != running]
         st.markdown(
             f'<p style="font-size:0.75rem;color:{SLATE};text-align:center;margin:0.4rem 0">'
             f'{len(done)}/{len(agents)} agents complete — {int(pct * 100)}%</p>',
             unsafe_allow_html=True,
         )
+        if pending:
+            st.info(
+                f"**{len(pending)} agents not yet run** in the latest pipeline cycle: "
+                f"{', '.join(pending)}. "
+                "This usually means the database still has logs from the old 12-agent pipeline. "
+                "Go to **Settings → ▶ FULL PIPELINE** (or wait for auto-simulation) to run all 20."
+            )
     else:
         st.info("Run pipeline from Settings tab, or wait for auto-simulation.")
     st.markdown("<br>", unsafe_allow_html=True)
@@ -722,7 +723,7 @@ def seed_demo():
             cur.execute("INSERT INTO leads(full_name,phone,email,score,status,ai_qualification_notes) VALUES(%s,%s,%s,%s,%s,%s)", (n, ph, em, sc, sts, nt))
 
         for i, (agent, s_detail, e_detail) in enumerate(RE_AGENTS):
-            t = datetime.now() - timedelta(minutes=len(RE_AGENTS)-i, seconds=random.randint(10, 50))
+            t = datetime.now() - timedelta(minutes=len(PIPELINE_AGENTS)-i, seconds=random.randint(10, 50))
             cur.execute("INSERT INTO bot_logs(agent_name,action,status,details,timestamp) VALUES(%s,%s,%s,%s,%s)", (agent, "Starting task", "processing", s_detail, t))
             cur.execute("INSERT INTO bot_logs(agent_name,action,status,details,timestamp) VALUES(%s,%s,%s,%s,%s)", (agent, "Task completed", "success", e_detail, t + timedelta(seconds=random.randint(3, 15))))
 
