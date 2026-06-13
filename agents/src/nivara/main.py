@@ -76,7 +76,7 @@ def run_server() -> None:
     uvicorn.run(
         "nivara.main:app",
         host=settings.orchestrator_host,
-        port=settings.orchestrator_port,
+        port=settings.listen_port,
         reload=False,
     )
 

@@ -349,5 +349,5 @@ async def call_tool(request: ToolCallRequest) -> dict[str, Any]:
 
 
 if __name__ == "__main__":
-    port = int(os.getenv("VEO_MCP_PORT", "8006"))
+    port = int(os.getenv("PORT", os.getenv("VEO_MCP_PORT", "8006")))
     uvicorn.run(app, host="0.0.0.0", port=port)

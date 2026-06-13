@@ -1,5 +1,7 @@
 """Application configuration from environment variables."""
 
+import os
+
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -10,7 +12,7 @@ class Settings(BaseSettings):
     supabase_service_role_key: str = ""
     supabase_storage_bucket: str = "media"
     db_host: str = "localhost"
-    db_port: int = 5433
+    db_port: int = 5432
     db_user: str = "nivara"
     db_password: str = "changeme"
     db_name: str = "nivara"
@@ -21,6 +23,10 @@ class Settings(BaseSettings):
     default_state: str = "Karnataka"
     orchestrator_host: str = "0.0.0.0"
     orchestrator_port: int = 8000
+
+    @property
+    def listen_port(self) -> int:
+        return int(os.getenv("PORT", str(self.orchestrator_port)))
 
 
 settings = Settings()

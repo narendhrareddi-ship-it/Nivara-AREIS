@@ -1,0 +1,57 @@
+services:
+  social-mcp:
+    build:
+      context: .
+      dockerfile: mcp-servers/social-mcp/Dockerfile
+    container_name: nivara-social-mcp
+    restart: unless-stopped
+    ports:
+      - "8003:8003"
+    env_file:
+      - .env
+    environment:
+      - PORT=8003
+      - SOCIAL_MCP_PORT=8003
+
+  veo-mcp:
+    build:
+      context: .
+      dockerfile: mcp-servers/veo-mcp/Dockerfile
+    container_name: nivara-veo-mcp
+    restart: unless-stopped
+    ports:
+      - "8006:8006"
+    env_file:
+      - .env
+    environment:
+      - PORT=8006
+      - VEO_MCP_PORT=8006
+      - SOCIAL_MCP_URL=http://social-mcp:8003
+      - USE_SUPABASE_STORAGE=true
+    volumes:
+      - media_storage:/app/media_storage
+    depends_on:
+      - social-mcp
+
+  orchestrator:
+    build:
+      context: .
+      dockerfile: agents/Dockerfile
+    container_name: nivara-orchestrator
+    restart: unless-stopped
+    ports:
+      - "8000:8000"
+    env_file:
+      - .env
+    environment:
+      - PORT=8000
+      - ORCHESTRATOR_PORT=8000
+      - VEO_MCP_URL=http://veo-mcp:8006
+      - SOCIAL_MCP_URL=http://social-mcp:8003
+      - DEFAULT_REGION=Bangalore
+    depends_on:
+      - veo-mcp
+      - social-mcp
+
+volumes:
+  media_storage:
