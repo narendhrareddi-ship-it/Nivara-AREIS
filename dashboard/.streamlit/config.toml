@@ -23,5 +23,6 @@ serverPort = 8501
 fastReruns = true
 
 [client]
-showEmailPrompt = false
+toolbarMode = "minimal"
+
 # redeploy trigger 2026-06-13T14:00:00Z build-c
