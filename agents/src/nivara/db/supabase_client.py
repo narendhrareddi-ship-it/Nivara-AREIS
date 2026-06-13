@@ -11,6 +11,11 @@ from nivara.config import settings
 logger = logging.getLogger(__name__)
 
 _SSLMODE = os.getenv("DB_SSLMODE", settings.db_sslmode)
+if _SSLMODE == "prefer" and any(
+    token in (settings.db_host or "").lower()
+    for token in ("supabase", "pooler", "aws-")
+):
+    _SSLMODE = "require"
 
 
 class SupabaseCRM:

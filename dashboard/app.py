@@ -683,8 +683,8 @@ with t7:
                 d = r.json()
                 st.success(
                     f"Agents: {d.get('agent_count', '?')}/20 | "
+                    f"DB: {'connected' if d.get('db_connected') else 'NOT connected'} | "
                     f"LLM: {d.get('llm_provider', '?')} | "
-                    f"DB: {d.get('supabase_configured')} | "
                     f"Auth: {d.get('api_auth_enabled')}"
                 )
             except Exception as e: st.error(f"Unreachable: {e}")
