@@ -17,7 +17,7 @@ from config import (
 )
 from safe_data import val as _val, text as _text, fmt_dt as _fmt_dt, trunc as _trunc
 
-APP_BUILD = "2026-06-13h"
+APP_BUILD = "2026-06-13i"
 
 # 20-agent pipeline order (single source of truth)
 PIPELINE_AGENTS = [
@@ -26,6 +26,13 @@ PIPELINE_AGENTS = [
     "PaidAdsManager", "LeadQualification", "SalesCoach", "WhatsAppAgent", "EmailMarketer",
     "AppointmentScheduler", "CRM", "Analytics", "COO", "CEO",
 ]
+
+# Pre-Phase-3 orchestrator only ran these 12 agents
+LEGACY_12_AGENTS = {
+    "MarketAnalyst", "CompetitorSpy", "ContentStrategist", "SEOAgent", "VisualDesigner",
+    "SocialMediaManager", "LeadQualification", "WhatsAppAgent", "AppointmentScheduler",
+    "CRM", "Analytics", "CEO",
+}
 
 AGENT_SIM_DETAILS: dict[str, tuple[str, str]] = {
     "MarketAnalyst": ("Analyzing Bangalore property market trends", "Market report: Whitefield prices up 9% YoY"),
@@ -302,6 +309,30 @@ with t2:
         for r in pl:
             if r["action"]=="Starting task": running = r["agent_name"]
             elif r["action"]=="Task completed": done.add(r["agent_name"]); running = None if running==r["agent_name"] else running
+
+    orch_agent_count = None
+    try:
+        import requests
+        hr = requests.get(f"{ORCH_URL}/health", timeout=8)
+        if hr.ok:
+            orch_agent_count = hr.json().get("agent_count")
+    except Exception:
+        pass
+
+    if orch_agent_count is not None and orch_agent_count < len(agents):
+        st.error(
+            f"**Orchestrator at `{ORCH_URL}` is running an old {orch_agent_count}-agent build**, "
+            f"not the current 20-agent pipeline. Redeploy Render (`nivara-orchestrator`) from latest `main`, "
+            "then run **Settings → ▶ FULL PIPELINE** again."
+        )
+    elif len(done) == 12 and done == LEGACY_12_AGENTS:
+        missing = [a for a in agents if a not in done]
+        st.error(
+            "**Latest pipeline run used the legacy 12-agent graph** (Render not redeployed). "
+            f"Missing agents: {', '.join(missing)}. "
+            "Redeploy `nivara-orchestrator` on Render from latest `main`, then re-run the full pipeline."
+        )
+
     st.markdown('<div class="pipeline-wrap">', unsafe_allow_html=True)
     for i, a in enumerate(agents):
         cls = "done" if a in done else "run" if a == running else "wait"
@@ -319,11 +350,9 @@ with t2:
             unsafe_allow_html=True,
         )
         if pending:
-            st.info(
-                f"**{len(pending)} agents not yet run** in the latest pipeline cycle: "
-                f"{', '.join(pending)}. "
-                "This usually means the database still has logs from the old 12-agent pipeline. "
-                "Go to **Settings → ▶ FULL PIPELINE** to run all 20 agents via the orchestrator."
+            st.warning(
+                f"**{len(pending)} agents not yet run** in the latest cycle: {', '.join(pending)}. "
+                "If this stays at 12/20 after a full pipeline run, your Render orchestrator needs redeploying."
             )
     else:
         st.info("No recent pipeline activity. Run **Settings → ▶ FULL PIPELINE** to start all 20 agents.")
@@ -601,11 +630,19 @@ with t7:
                 import requests
                 r = requests.post(
                     f"{ORCH_URL}/orchestrate",
-                    json={"task": "daily_market_analysis", "region": DEFAULT_REGION},
+                    json={
+                        "task": "daily_market_analysis",
+                        "region": DEFAULT_REGION,
+                        "agents": PIPELINE_AGENTS,
+                    },
                     headers=orchestrator_headers(),
-                    timeout=600,
+                    timeout=900,
                 )
-                st.success("Pipeline launched!") if r.ok else st.error(f"Failed: {r.status_code}")
+                if r.ok:
+                    ran = len(r.json().get("agent_outputs", {}))
+                    st.success(f"Pipeline launched — {ran}/{len(PIPELINE_AGENTS)} agents returned output.")
+                else:
+                    st.error(f"Failed: {r.status_code} — {r.text[:200]}")
                 st.rerun()
             except Exception as e: st.error(f"Connection error: {e}")
     with c2:
@@ -615,6 +652,7 @@ with t7:
                 r = requests.get(f"{ORCH_URL}/health", timeout=10)
                 d = r.json()
                 st.success(
+                    f"Agents: {d.get('agent_count', '?')}/20 | "
                     f"LLM: {d.get('llm_provider', '?')} | "
                     f"DB: {d.get('supabase_configured')} | "
                     f"Auth: {d.get('api_auth_enabled')}"

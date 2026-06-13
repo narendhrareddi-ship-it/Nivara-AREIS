@@ -54,6 +54,8 @@ async def health() -> dict[str, Any]:
         "ollama": provider == "ollama",
         "api_auth_enabled": bool(settings.orchestrator_api_key.strip()),
         "supabase_configured": orchestrator.crm.is_configured(),
+        "agent_count": len(orchestrator._agents),
+        "pipeline_version": "20-agent",
     }
 
 

@@ -189,5 +189,14 @@ class AgentOrchestrator:
             if name not in self._agents:
                 logger.warning("Unknown agent: %s", name)
                 continue
-            current = {**current, **await self._agents[name].run(current)}
+            agent = self._agents[name]
+            logger.info("Running agent (subset): %s", name)
+            agent.log_action("Starting task", "processing", f"Agent {name} is now active.")
+            try:
+                result = await agent.run(current)
+                agent.log_action("Task completed", "success", f"Agent {name} finished execution.")
+                current = {**current, **result}
+            except Exception as exc:
+                agent.log_action("Task failed", "error", str(exc))
+                raise
         return current
