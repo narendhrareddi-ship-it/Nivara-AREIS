@@ -75,6 +75,7 @@ Set `VEO_MOCK=true` to test without API calls.
 | Issue | Fix |
 |-------|-----|
 | Auth error | Verify `GEMINI_API_KEY` at aistudio.google.com |
+| Quota exceeded (429) | Enable billing or wait for quota reset at ai.dev/rate-limit |
 | Veo access denied | Enable Veo in your Google AI project / billing |
 | Timeout | Veo takes 2-10 min; increase client timeout |
 | Social post fails | Ensure social-mcp running on :8003 |

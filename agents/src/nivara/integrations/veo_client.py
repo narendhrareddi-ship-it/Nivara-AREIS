@@ -56,10 +56,8 @@ class VeoClient:
                 {
                     "prompt": prompt,
                     "image": {
-                        "inlineData": {
-                            "mimeType": mime_type,
-                            "data": image_b64,
-                        }
+                        "bytesBase64Encoded": image_b64,
+                        "mimeType": mime_type,
                     },
                 }
             ],
