@@ -16,22 +16,36 @@ st.set_page_config(page_title="NIVARA — AREIS", page_icon="🏢", layout="wide
 def db():
     try:
         return psycopg2.connect(
-            host=DB_HOST, port=DB_PORT, database=DB_NAME,
-            user=DB_USER, password=DB_PASSWORD,
+            host=DB_HOST,
+            port=DB_PORT,
+            database=DB_NAME,
+            user=DB_USER,
+            password=DB_PASSWORD,
             cursor_factory=RealDictCursor,
+            sslmode="require",
+            connect_timeout=15,
         )
     except Exception:
         return None
 
 def q(sql, p=None, one=False):
     c = db()
-    if not c: return None if one else []
+    if not c:
+        return None if one else []
     try:
         with c.cursor() as cur:
             cur.execute(sql, p)
             return cur.fetchone() if one else cur.fetchall()
-    except: return None if one else []
-    finally: c.close()
+    except Exception:
+        return None if one else []
+    finally:
+        c.close()
+
+def _val(row, key, default=0):
+    """Safe read from query result — avoids crash when DB is unreachable."""
+    if not row or key not in row or row[key] is None:
+        return default
+    return row[key]
 
 RE_AGENTS = [
     ("MarketAnalyst", "Analyzing Chennai property market trends", "Market report: OMR prices up 11% YoY, ECR demand rising"),
@@ -110,7 +124,19 @@ def simulate_activity():
 
 st.markdown(CSS, unsafe_allow_html=True)
 
-simulate_activity()
+_db_ok = db() is not None
+if _db_ok:
+    simulate_activity()
+else:
+    st.error(
+        "Database connection failed. In Streamlit Cloud → Settings → Secrets, set:\n\n"
+        "```toml\n"
+        "DB_HOST = \"aws-1-ap-south-1.pooler.supabase.com\"\n"
+        "DB_USER = \"postgres.mxjhwjxxqtkwsrwtqwuc\"\n"
+        "DB_NAME = \"postgres\"\n"
+        "DB_PASSWORD = \"your-password\"\n"
+        "```"
+    )
 
 # ── Hero header ──
 h1, h2 = st.columns([3, 1])
@@ -157,14 +183,14 @@ rq = q("SELECT COALESCE(SUM(reach),0) r FROM social_posts", one=True)
 tq = q("SELECT count(*) c FROM crm_activity", one=True)
 
 stats = [
-    (lq["c"], "Total Leads", "Active targets", "red"),
-    (hq["c"], "Hot Leads", "Score ≥ 70", "red"),
-    (f'{aq["a"]}', "Avg Score", "Lead quality", "gold"),
-    (cq["c"], "Converted", "Deals closed", "green"),
-    (pq["c"], "Posts", "Published", "gold"),
-    (f'{rq["r"]:,}', "Total Reach", "Social impressions", "navy"),
-    (bq["c"], "Agent Runs", "Executions", "blue"),
-    (tq["c"], "CRM Actions", "Activities", "green"),
+    (_val(lq, "c"), "Total Leads", "Active targets", "red"),
+    (_val(hq, "c"), "Hot Leads", "Score ≥ 70", "red"),
+    (str(_val(aq, "a")), "Avg Score", "Lead quality", "gold"),
+    (_val(cq, "c"), "Converted", "Deals closed", "green"),
+    (_val(pq, "c"), "Posts", "Published", "gold"),
+    (f'{_val(rq, "r"):,}', "Total Reach", "Social impressions", "navy"),
+    (_val(bq, "c"), "Agent Runs", "Executions", "blue"),
+    (_val(tq, "c"), "CRM Actions", "Activities", "green"),
 ]
 
 s1, s2, s3, s4 = st.columns(4)

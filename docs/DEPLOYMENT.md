@@ -34,15 +34,15 @@ Go to [share.streamlit.io](https://share.streamlit.io) → sign in with GitHub.
 In the app → **Settings → Secrets**, paste (edit values):
 
 ```toml
-DB_HOST = "your-supabase-or-render-db-host"
+SUPABASE_URL = "https://mxjhwjxxqtkwsrwtqwuc.supabase.co"
+DB_HOST = "aws-1-ap-south-1.pooler.supabase.com"
 DB_PORT = "5432"
-DB_NAME = "nivara"
-DB_USER = "nivara"
-DB_PASSWORD = "your-password"
+DB_NAME = "postgres"
+DB_USER = "postgres.mxjhwjxxqtkwsrwtqwuc"
+DB_PASSWORD = "your-supabase-password"
 
-ORCHESTRATOR_URL = "https://your-orchestrator-host"
-VEO_MCP_URL = "https://your-veo-mcp-host"
-OLLAMA_BASE_URL = "https://your-ollama-host"
+ORCHESTRATOR_URL = "http://localhost:8000"
+VEO_MCP_URL = "http://localhost:8006"
 ```
 
 Template: [`dashboard/.streamlit/secrets.toml.example`](../dashboard/.streamlit/secrets.toml.example)
