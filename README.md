@@ -92,7 +92,7 @@ Paid upgrade path: **[docs/FREE_TIER_LIMITS.md](docs/FREE_TIER_LIMITS.md)**
 | Ollama | http://localhost:11434 |
 | CRM MCP | http://localhost:8001 |
 | Gemini Veo MCP | http://localhost:8006 |
-| Dashboard (AREIS) | **Permanent:** [Streamlit Cloud deploy](docs/DEPLOYMENT.md) · Local: `./scripts/start-dashboard.sh` |
+| Dashboard (AREIS) | [Streamlit Cloud](docs/DEPLOYMENT.md) · [GitHub + Supabase setup](docs/GITHUB_AND_SUPABASE_SETUP.md) |
 | WhatsApp Mock | http://localhost:8004/webhook/message |
 
 ## License
