@@ -20,7 +20,7 @@
     },
     {
       "parameters": {
-        "jsCode": "const body = $input.first().json.body || $input.first().json;\n\nconst lead = {\n  full_name: body.full_name || body.name || 'Unknown',\n  email: body.email || null,\n  phone: body.phone || body.mobile,\n  whatsapp_number: body.whatsapp || body.phone,\n  source: body.source || 'n8n_webhook',\n  status: 'new',\n  score: 0,\n  budget_min: body.budget_min || null,\n  budget_max: body.budget_max || null,\n  preferred_property_type: body.property_type || null,\n  preferred_locations: body.locations || [],\n  city: body.city || 'Chennai',\n  state: body.state || 'Tamil Nadu',\n  metadata: { raw_payload: body, received_at: new Date().toISOString() }\n};\n\nif (!lead.phone) {\n  throw new Error('phone is required');\n}\n\nreturn [{ json: lead }];"
+        "jsCode": "const body = $input.first().json.body || $input.first().json;\n\nconst lead = {\n  full_name: body.full_name || body.name || 'Unknown',\n  email: body.email || null,\n  phone: body.phone || body.mobile,\n  whatsapp_number: body.whatsapp || body.phone,\n  source: body.source || 'n8n_webhook',\n  status: 'new',\n  score: 0,\n  budget_min: body.budget_min || null,\n  budget_max: body.budget_max || null,\n  preferred_property_type: body.property_type || null,\n  preferred_locations: body.locations || [],\n  city: body.city || 'Bangalore',\n  state: body.state || 'Karnataka',\n  metadata: { raw_payload: body, received_at: new Date().toISOString() }\n};\n\nif (!lead.phone) {\n  throw new Error('phone is required');\n}\n\nreturn [{ json: lead }];"
       },
       "id": "normalize-lead",
       "name": "Normalize Lead Data",
@@ -52,29 +52,46 @@
         "url": "http://host.docker.internal:8004/webhook/message",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"phone\": \"{{ $('Normalize Lead Data').item.json.phone }}\",\n  \"message\": \"New lead registered via webhook\",\n  \"lead_id\": \"{{ $json[0]?.id || $json.id }}\"\n}"
+        "jsonBody": "={\n  \"phone\": \"{{ $('Normalize Lead Data').item.json.phone }}\",\n  \"message\": \"New Bangalore lead registered via webhook\",\n  \"lead_id\": \"{{ $json[0]?.id || $json.id }}\"\n}"
       },
       "id": "notify-whatsapp-mock",
-      "name": "Notify WhatsApp Mock",
+      "name": "Notify WhatsApp MCP",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         960,
         300
       ],
-      "notes": "Optional: triggers mock WhatsApp MCP for lead scoring"
+      "notes": "Triggers WhatsApp MCP for lead scoring. Set WHATSAPP_MCP_URL for production."
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:8000/orchestrate",
+        "sendBody": true,
+        "specifyBody": "json",
+        "jsonBody": "={\n  \"task\": \"lead_intake\",\n  \"region\": \"Bangalore\",\n  \"leads\": [{{ JSON.stringify($('Normalize Lead Data').item.json) }}],\n  \"agents\": [\"LeadQualification\", \"WhatsAppAgent\", \"EmailMarketer\", \"CRM\"]\n}"
+      },
+      "id": "trigger-lead-agents",
+      "name": "Trigger Lead Agents",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.2,
+      "position": [
+        1200,
+        300
+      ]
     },
     {
       "parameters": {
         "respondWith": "json",
-        "responseBody": "={\n  \"success\": true,\n  \"lead_id\": \"{{ $('Insert Lead to Supabase').item.json[0]?.id || $('Insert Lead to Supabase').item.json.id }}\",\n  \"message\": \"Lead captured successfully\"\n}"
+        "responseBody": "={\n  \"success\": true,\n  \"lead_id\": \"{{ $('Insert Lead to Postgres').item.json[0]?.id || $('Insert Lead to Postgres').item.json.id }}\",\n  \"message\": \"Lead captured successfully\"\n}"
       },
       "id": "respond-success",
       "name": "Respond Success",
       "type": "n8n-nodes-base.respondToWebhook",
       "typeVersion": 1.1,
       "position": [
-        1200,
+        1440,
         300
       ]
     }
@@ -95,25 +112,36 @@
       "main": [
         [
           {
-            "node": "Insert Lead to Supabase",
+            "node": "Insert Lead to Postgres",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Insert Lead to Supabase": {
+    "Insert Lead to Postgres": {
       "main": [
         [
           {
-            "node": "Notify WhatsApp Mock",
+            "node": "Notify WhatsApp MCP",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Notify WhatsApp Mock": {
+    "Notify WhatsApp MCP": {
+      "main": [
+        [
+          {
+            "node": "Trigger Lead Agents",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Trigger Lead Agents": {
       "main": [
         [
           {

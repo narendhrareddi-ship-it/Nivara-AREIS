@@ -33,16 +33,16 @@
       "parameters": {
         "operation": "executeQuery",
         "connection": "postgres_local",
-        "query": "SELECT * FROM leads WHERE status = 'new' ORDER BY created_at_desc LIMIT 50"
+        "query": "SELECT * FROM leads WHERE status = 'new' ORDER BY created_at DESC LIMIT 50"
       }
     },
     {
       "parameters": {
         "method": "POST",
-        "url": "http://host.docker.internal:8005/orchestrate",
+        "url": "http://host.docker.internal:8000/orchestrate",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"task\": \"crm_sync\",\n  \"leads\": {{ JSON.stringify($json) }},\n  \"agents\": [\"LeadQualification\", \"CRM\"]\n}"
+        "jsonBody": "={\n  \"task\": \"crm_sync\",\n  \"region\": \"Bangalore\",\n  \"leads\": {{ JSON.stringify($json) }},\n  \"agents\": [\"LeadQualification\", \"SalesCoach\", \"WhatsAppAgent\", \"CRM\"]\n}"
       },
       "id": "trigger-crm-agents",
       "name": "Trigger CRM Agents",
@@ -55,9 +55,9 @@
     },
     {
       "parameters": {
-        "content": "## CRM Sync\n\nHourly sync of new leads to LangGraph CRM + Lead Qualification agents.\n\nConfigure Supabase env vars in n8n Settings > Variables.",
+        "content": "## CRM Sync (Phase 5)\n\nHourly sync of new Bangalore leads to Lead Qualification, Sales Coach, WhatsApp, and CRM agents.\n\nOrchestrator: :8000 (was :8005 in Phase 1).",
         "height": 140,
-        "width": 300
+        "width": 340
       },
       "id": "sticky-note-crm",
       "name": "Sticky Note",

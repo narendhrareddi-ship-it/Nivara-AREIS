@@ -13,10 +13,11 @@ from config import (
     DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD,
     ORCH_URL, VEO_URL, OLLAMA_URL, DEFAULT_REGION,
     connection_config, password_is_placeholder,
+    ENABLE_DASHBOARD_SIMULATION, orchestrator_headers,
 )
 from safe_data import val as _val, text as _text, fmt_dt as _fmt_dt, trunc as _trunc
 
-APP_BUILD = "2026-06-13g"
+APP_BUILD = "2026-06-13h"
 
 # 20-agent pipeline order (single source of truth)
 PIPELINE_AGENTS = [
@@ -187,7 +188,7 @@ if not _db_ok:
             'VEO_MCP_URL = "https://nivara-veo-mcp.onrender.com"',
             language="toml",
         )
-elif _db_ok:
+elif _db_ok and ENABLE_DASHBOARD_SIMULATION:
     simulate_activity()
 
 # ── Hero header ──
@@ -322,10 +323,10 @@ with t2:
                 f"**{len(pending)} agents not yet run** in the latest pipeline cycle: "
                 f"{', '.join(pending)}. "
                 "This usually means the database still has logs from the old 12-agent pipeline. "
-                "Go to **Settings → ▶ FULL PIPELINE** (or wait for auto-simulation) to run all 20."
+                "Go to **Settings → ▶ FULL PIPELINE** to run all 20 agents via the orchestrator."
             )
     else:
-        st.info("Run pipeline from Settings tab, or wait for auto-simulation.")
+        st.info("No recent pipeline activity. Run **Settings → ▶ FULL PIPELINE** to start all 20 agents.")
     st.markdown("<br>", unsafe_allow_html=True)
 
     # Pipeline duration chart
@@ -598,7 +599,12 @@ with t7:
         if st.button(u"\u25B6 FULL PIPELINE", type="primary", key="full_pipeline"):
             try:
                 import requests
-                r = requests.post(f"{ORCH_URL}/orchestrate", json={"task":"daily_market_analysis","region":DEFAULT_REGION}, timeout=600)
+                r = requests.post(
+                    f"{ORCH_URL}/orchestrate",
+                    json={"task": "daily_market_analysis", "region": DEFAULT_REGION},
+                    headers=orchestrator_headers(),
+                    timeout=600,
+                )
                 st.success("Pipeline launched!") if r.ok else st.error(f"Failed: {r.status_code}")
                 st.rerun()
             except Exception as e: st.error(f"Connection error: {e}")
@@ -606,8 +612,13 @@ with t7:
         if st.button(u"\u27F3 HEALTH CHECK", key="health_check"):
             try:
                 import requests
-                r = requests.get(f"{ORCH_URL}/health", timeout=10); d = r.json()
-                st.success(f"Ollama: {d['ollama']} | DB: {d['supabase_configured']}")
+                r = requests.get(f"{ORCH_URL}/health", timeout=10)
+                d = r.json()
+                st.success(
+                    f"LLM: {d.get('llm_provider', '?')} | "
+                    f"DB: {d.get('supabase_configured')} | "
+                    f"Auth: {d.get('api_auth_enabled')}"
+                )
             except Exception as e: st.error(f"Unreachable: {e}")
     with c3:
         if st.button(u"\u2715 CLEAR LOGS", key="clear_logs"): q("DELETE FROM bot_logs", one=True); st.success("Cleared!"); st.rerun()
@@ -622,7 +633,12 @@ with t7:
             if st.button(f"RUN {a}", key=f"r_{a}"):
                 try:
                     import requests
-                    r = requests.post(f"{ORCH_URL}/orchestrate", json={"task":"daily_market_analysis","region":DEFAULT_REGION,"agents":[a]}, timeout=120)
+                    r = requests.post(
+                        f"{ORCH_URL}/orchestrate",
+                        json={"task": "daily_market_analysis", "region": DEFAULT_REGION, "agents": [a]},
+                        headers=orchestrator_headers(),
+                        timeout=120,
+                    )
                     st.success(f"{a} complete") if r.ok else st.error(f"{a} failed")
                     st.rerun()
                 except Exception as e: st.error(str(e))
@@ -637,8 +653,14 @@ with t7:
         f"| DB name | `{cfg['database']}` |\n"
         f"| Password loaded | **{'Yes' if cfg['password_set'] else 'NO — still placeholder'}** |\n"
         f"| Supabase URL set | {'Yes' if cfg['supabase_url_set'] else 'No'} |\n"
-        f"| Build | `{APP_BUILD}` |"
+        f"| Build | `{APP_BUILD}` |\n"
+        f"| Demo simulation | **{'On' if ENABLE_DASHBOARD_SIMULATION else 'Off (production)'}** |"
     )
+    if not ENABLE_DASHBOARD_SIMULATION:
+        st.caption(
+            "Live mode: dashboard shows real Supabase data only. "
+            "Set `ENABLE_DASHBOARD_SIMULATION = true` in secrets for demo data."
+        )
     if cfg["password_placeholder"]:
         st.warning(
             "Password is still a placeholder. In Streamlit **Settings → Secrets**, set "

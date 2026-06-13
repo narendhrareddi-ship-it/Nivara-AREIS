@@ -1,6 +1,6 @@
 # NIVARA REALTY — AI Digital Marketing System
 
-Phase 1–4 foundation for a **20-agent** digital marketing agency specializing in **Bangalore real estate**. Built on free and open-source tools with optional cloud hosting.
+Phase 1–5 foundation for a **20-agent** digital marketing agency specializing in **Bangalore real estate**. Built on free and open-source tools with optional cloud hosting and LLM fallback.
 
 ## Quick Start
 
@@ -28,27 +28,25 @@ Full setup: **[docs/PHASE1_SETUP.md](docs/PHASE1_SETUP.md)**
 
 ```mermaid
 flowchart LR
-    N8N[N8N Workflows] --> AG[LangGraph Agents]
-    AG --> OLL[Ollama LLM]
+    N8N[N8N Workflows] --> AG[LangGraph 20 Agents]
+    AG --> OLL[Ollama / Cloud LLM]
     AG --> SB[(Supabase CRM)]
     MCP[MCP Servers] --> SB
     N8N --> SB
+    DASH[Streamlit Dashboard] --> SB
 ```
 
-Details: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
+Details: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** · Phase 5: **[docs/PHASE5.md](docs/PHASE5.md)**
 
-## Phase 1 Scope
+## Phase Status
 
-| Deliverable | Status |
-|-------------|--------|
-| Supabase schema (10 tables + RLS) | ✅ |
-| Phase 2 migration (bot_logs, media_assets) | ✅ |
-| Docker Compose (n8n + ollama + postgres + dashboard + veo) | ✅ |
-| N8N workflows (5) | ✅ |
-| LangGraph agents (12 of 20) | ✅ |
-| MCP servers (5) | ✅ |
-| Gemini Veo photo-to-video → social | ✅ |
-| Documentation | ✅ |
+| Phase | Deliverable | Status |
+|-------|-------------|--------|
+| 1 | Supabase schema, Docker, 12 agents, MCP stubs | ✅ |
+| 2 | Gemini Veo video pipeline | ✅ |
+| 3 | 4 agents + Render hosting + storage | ✅ |
+| 4 | 4 executive agents + Bangalore focus | ✅ |
+| 5 | Cloud LLM, API auth, N8N refresh, sim gate | ✅ |
 
 ## Project Structure
 
@@ -61,9 +59,9 @@ Details: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)**
 └── docs/                       # Architecture, setup, agent roster
 ```
 
-## Agents (Phase 1)
+## Agents (20)
 
-CEO · MarketAnalyst · CompetitorSpy · ContentStrategist · SEOAgent · VisualDesigner · SocialMediaManager · LeadQualification · WhatsAppAgent · AppointmentScheduler · CRM · Analytics
+MarketAnalyst · RegulatoryWatch · LocationScout · CompetitorSpy · CMO · ContentStrategist · Copywriter · SEOAgent · VisualDesigner · SocialMediaManager · PaidAdsManager · LeadQualification · SalesCoach · WhatsAppAgent · EmailMarketer · AppointmentScheduler · CRM · Analytics · COO · CEO
 
 Full roster: **[docs/AGENT_ROSTER.md](docs/AGENT_ROSTER.md)**
 
@@ -73,13 +71,14 @@ Upload site photos → AI generates cinematic videos → auto-posts to social me
 
 Guide: **[docs/PHASE2_VEO.md](docs/PHASE2_VEO.md)**
 
-## Stack (Free Only)
+## Stack
 
-- **Database**: Supabase (PostgreSQL free tier)
+- **Database**: Supabase (PostgreSQL + Storage)
 - **Workflows**: N8N (self-hosted Docker)
-- **Agents**: LangGraph (Python)
-- **LLM**: Ollama (Llama 3.x / Mistral) — no OpenAI/Anthropic
-- **MCP**: Local stub servers
+- **Agents**: LangGraph (Python) — 20 agents
+- **LLM**: Ollama locally; Groq/Gemini/OpenRouter in production
+- **Video**: Gemini Veo MCP
+- **Dashboard**: Streamlit Cloud
 
 Paid upgrade path: **[docs/FREE_TIER_LIMITS.md](docs/FREE_TIER_LIMITS.md)**
 

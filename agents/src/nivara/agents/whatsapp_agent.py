@@ -2,7 +2,9 @@
 
 from __future__ import annotations
 
+import os
 from typing import Any
+
 import httpx
 
 from nivara.agents.base import AgentState, BaseAgent
@@ -15,7 +17,7 @@ class WhatsAppAgent(BaseAgent):
 
     def __init__(self, llm: Any, crm: Any) -> None:
         super().__init__(llm, crm)
-        self.mcp_url = "http://localhost:8004"
+        self.mcp_url = os.getenv("WHATSAPP_MCP_URL", "http://localhost:8004")
 
     async def run(self, state: AgentState) -> dict[str, Any]:
         region = state.get("region", DEFAULT_REGION)

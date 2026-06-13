@@ -46,8 +46,10 @@ def _from_secrets_nested(key: str) -> str | None:
         "DB_PASSWORD": [("database", "password"), ("supabase", "db_password")],
         "SUPABASE_URL": [("supabase", "url")],
         "ORCHESTRATOR_URL": [("orchestrator", "url"), ("services", "orchestrator_url")],
+        "ORCHESTRATOR_API_KEY": [("orchestrator", "api_key"), ("services", "orchestrator_api_key")],
         "VEO_MCP_URL": [("services", "veo_mcp_url"), ("veo", "url")],
         "OLLAMA_BASE_URL": [("ollama", "url"), ("services", "ollama_url")],
+        "ENABLE_DASHBOARD_SIMULATION": [("dashboard", "simulate"), ("features", "simulate_activity")],
     }
     for section, field in aliases.get(key, []):
         try:
@@ -114,6 +116,16 @@ DB_PASSWORD = _get("DB_PASSWORD", "changeme")
 ORCH_URL = _get("ORCHESTRATOR_URL", "http://localhost:8000")
 VEO_URL = _get("VEO_MCP_URL", "http://localhost:8006")
 OLLAMA_URL = _get("OLLAMA_BASE_URL", "http://localhost:11434")
+ORCHESTRATOR_API_KEY = _get("ORCHESTRATOR_API_KEY", "")
+
+_sim_flag = _get("ENABLE_DASHBOARD_SIMULATION", "false").strip().lower()
+ENABLE_DASHBOARD_SIMULATION = _sim_flag in ("1", "true", "yes", "on")
+
+
+def orchestrator_headers() -> dict[str, str]:
+    if ORCHESTRATOR_API_KEY.strip():
+        return {"X-API-Key": ORCHESTRATOR_API_KEY.strip()}
+    return {}
 
 
 def password_is_placeholder() -> bool:

@@ -23,20 +23,23 @@
     {
       "parameters": {
         "method": "POST",
-        "url": "http://host.docker.internal:8005/orchestrate",
+        "url": "http://host.docker.internal:8000/orchestrate",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"task\": \"daily_market_analysis\",\n  \"region\": \"Chennai\",\n  \"agents\": [\"MarketAnalyst\", \"CompetitorSpy\", \"Analytics\"]\n}"
+        "jsonBody": "={\n  \"task\": \"daily_market_analysis\",\n  \"region\": \"Bangalore\"\n}",
+        "options": {
+          "timeout": 300000
+        }
       },
       "id": "call-agent-orchestrator",
-      "name": "Trigger Agent Orchestrator",
+      "name": "Trigger Full 20-Agent Pipeline",
       "type": "n8n-nodes-base.httpRequest",
       "typeVersion": 4.2,
       "position": [
         480,
         300
       ],
-      "notes": "Calls LangGraph orchestrator (run agents separately in Phase 1)"
+      "notes": "Runs all 20 agents (omit agents[] for full pipeline). Set ORCHESTRATOR_URL in n8n if not using host.docker.internal:8000."
     },
     {
       "id": "log-to-supabase",
@@ -50,14 +53,14 @@
       "parameters": {
         "operation": "executeQuery",
         "connection": "postgres_local",
-        "query": "-- Insert into crm_activity\nINSERT INTO crm_activity SELECT * FROM json_populate_record(NULL:: crm_activity, { $json });"
+        "query": "INSERT INTO crm_activity (lead_id, activity_type, title, description, performed_by, agent_name) VALUES (NULL, 'pipeline', 'Daily market pipeline', '20-agent Bangalore pipeline completed', 'n8n', 'CEO')"
       }
     },
     {
       "parameters": {
-        "content": "## Daily Market Pipeline\n\nRuns at 6 AM IST. Triggers Market Analyst + Competitor Spy agents.\n\n**Phase 1**: HTTP call to orchestrator is optional \u2014 configure SUPABASE_URL and keys in n8n credentials.",
+        "content": "## Daily Market Pipeline (Phase 5)\n\nRuns at 6 AM IST. Triggers the full 20-agent Bangalore pipeline via orchestrator :8000.\n\nConfigure Supabase Postgres credentials and ORCHESTRATOR_URL (Render HTTPS) in n8n.",
         "height": 180,
-        "width": 320
+        "width": 360
       },
       "id": "sticky-note",
       "name": "Sticky Note",
@@ -74,18 +77,18 @@
       "main": [
         [
           {
-            "node": "Trigger Agent Orchestrator",
+            "node": "Trigger Full 20-Agent Pipeline",
             "type": "main",
             "index": 0
           }
         ]
       ]
     },
-    "Trigger Agent Orchestrator": {
+    "Trigger Full 20-Agent Pipeline": {
       "main": [
         [
           {
-            "node": "Log to Supabase CRM",
+            "node": "Log to Postgres CRM",
             "type": "main",
             "index": 0
           }

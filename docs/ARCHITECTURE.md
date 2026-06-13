@@ -1,35 +1,28 @@
-# NIVARA REALTY — System Architecture (Phase 1)
+# NIVARA REALTY — System Architecture (Phase 5)
 
-Free-tier, open-source digital marketing agency stack for Chennai and Andhra Pradesh real estate.
+Free-tier digital marketing agency stack for **Bangalore real estate** — 20 LangGraph agents, Supabase CRM, Gemini Veo video, and optional cloud LLM.
 
 ## High-Level Architecture
 
 ```mermaid
 flowchart TB
-    subgraph External["Inbound Channels (Phase 1 Mock)"]
+    subgraph External["Inbound Channels"]
         WEB[Website Forms]
-        WA[WhatsApp Mock]
-        SOC[Social Mock Webhooks]
+        WA[WhatsApp MCP]
+        SOC[Social MCP]
     end
 
     subgraph Orchestration["Workflow Layer"]
         N8N[N8N Self-Hosted]
+        DASH[Streamlit Dashboard]
     end
 
-    subgraph Agents["LangGraph Agent Layer"]
-        CEO[CEO Agent]
-        MA[Market Analyst]
-        CS[Competitor Spy]
-        CT[Content Strategist]
-        VD[Visual Designer]
-        SM[Social Media Manager]
-        LQ[Lead Qualification]
-        CRM[CRM Agent]
-        AN[Analytics Agent]
+    subgraph Agents["LangGraph — 20 Agents"]
         ORCH[Orchestrator API :8000]
+        PIPE[MarketAnalyst → … → CEO]
     end
 
-    subgraph MCP["MCP Servers (Local Stubs)"]
+    subgraph MCP["MCP Servers"]
         CRM_MCP[CRM MCP :8001]
         BR_MCP[Browser MCP :8002]
         SOC_MCP[Social MCP :8003]
@@ -38,11 +31,12 @@ flowchart TB
     end
 
     subgraph Data["Data Layer"]
-        SB[(Supabase PostgreSQL)]
+        SB[(Supabase PostgreSQL + Storage)]
     end
 
-    subgraph LLM["Inference (Free)"]
-        OLL[Ollama + Llama 3.x]
+    subgraph LLM["Inference"]
+        OLL[Ollama local]
+        CLOUD[Groq / Gemini / OpenRouter]
     end
 
     WEB --> N8N
@@ -50,84 +44,76 @@ flowchart TB
     SOC --> SOC_MCP
 
     N8N --> ORCH
-    N8N --> SB
-
-    ORCH --> MA --> CS --> CT --> VD --> SM --> LQ --> CRM --> AN --> CEO
+    DASH --> SB
+    ORCH --> PIPE
     ORCH --> OLL
+    ORCH --> CLOUD
 
-    MA --> CRM_MCP
-    CS --> BR_MCP
-    LQ --> CRM_MCP
-    CRM --> CRM_MCP
-    AN --> CRM_MCP
-    CT --> SOC_MCP
-    VD --> VEO_MCP
+    PIPE --> MCP
+    MCP --> SB
     VEO_MCP --> SOC_MCP
-
-    CRM_MCP --> SB
-    SOC_MCP --> SB
-    WA_MCP --> SB
 ```
 
-## Component Responsibilities
-
-| Component | Role | Phase 1 Status |
-|-----------|------|----------------|
-| **Supabase** | CRM database, RLS, REST API | Schema + migrations ready |
-| **N8N** | Scheduled workflows, webhooks | 5 importable workflows |
-| **LangGraph** | Multi-agent orchestration | 12 agents + CEO synthesis |
-| **Ollama** | Local LLM inference | Llama 3.2 default |
-| **Gemini Veo MCP** | Photo-to-video + social publish | veo-mcp :8006 |
-| **MCP Servers** | Tool interfaces for agents/Cursor | 5 servers |
-| **Docker Compose** | n8n + ollama + postgres + dashboard | Ready |
-
-## Data Flow: Lead Intake
-
-```mermaid
-sequenceDiagram
-    participant Form as Website/Ad Form
-    participant N8N as N8N Webhook
-    participant SB as Supabase
-    participant WA as WhatsApp MCP
-    participant AG as Lead Qual Agent
-
-    Form->>N8N: POST /webhook/lead-intake
-    N8N->>SB: INSERT leads
-    N8N->>WA: POST /webhook/message
-    WA->>SB: INSERT crm_activity
-    N8N-->>Form: { lead_id, success }
-
-    Note over N8N,AG: Hourly crm_sync workflow
-    N8N->>SB: SELECT new leads
-    N8N->>AG: POST /orchestrate
-    AG->>SB: UPDATE leads + log activity
-```
-
-## Agent Pipeline (Daily 6 AM)
-
-1. **MarketAnalyst** — Pull projects, analyze regional trends
-2. **CompetitorSpy** — Review competitor table + browser stub
-3. **ContentStrategist** — Generate content plan from market intel
-4. **LeadQualification** — Score new leads
-5. **CRM** — Follow-up action plan
-6. **Analytics** — Review mock ad performance
-7. **CEO** — Executive briefing synthesis
-
-## Security Notes
-
-- All secrets via `.env` (never committed)
-- Supabase RLS enabled; service role for backend agents
-- N8N basic auth enabled by default
-- MCP servers bind to localhost in development
-
-## Directory Structure
+## 20-Agent Pipeline
 
 ```
-nivara-digital-marketing/
-├── docker-compose.yml
-├── supabase/migrations/
-├── n8n/workflows/
-├── agents/src/nivara/
-├── mcp-servers/
-└── docs/
+MarketAnalyst → RegulatoryWatch → LocationScout → CompetitorSpy → CMO
+  → ContentStrategist → Copywriter → SEOAgent → VisualDesigner
+  → SocialMediaManager → PaidAdsManager → LeadQualification → SalesCoach
+  → WhatsAppAgent → EmailMarketer → AppointmentScheduler → CRM
+  → Analytics → COO → CEO
 ```
+
+## Component Status (Phase 5)
+
+| Component | Role | Status |
+|-----------|------|--------|
+| **Supabase** | CRM + media storage | Production-ready |
+| **LangGraph** | 20-agent orchestration | Built |
+| **Ollama** | Local LLM | Dev only |
+| **Cloud LLM** | Groq/Gemini/OpenRouter fallback | Phase 5 |
+| **Gemini Veo MCP** | Photo-to-video | Built (quota-dependent) |
+| **Social MCP** | FB/IG/LinkedIn posting | Mock |
+| **WhatsApp MCP** | Lead scoring webhook | Mock |
+| **N8N** | 5 scheduled workflows | Updated Bangalore |
+| **Streamlit** | Operations dashboard | Deployed |
+| **Render** | Orchestrator + Veo + Social | Blueprint ready |
+| **API auth** | Optional X-API-Key | Phase 5 |
+
+## LLM Fallback Chain
+
+When `LLM_PROVIDER=auto` (default):
+
+1. Ollama at `OLLAMA_BASE_URL` (local dev)
+2. Groq if `GROQ_API_KEY` set
+3. Gemini if `GEMINI_API_KEY` set
+4. OpenRouter if `OPENROUTER_API_KEY` set
+5. Stub message (only if nothing configured)
+
+## Environment Variables
+
+| Variable | Purpose |
+|----------|---------|
+| `LLM_PROVIDER` | `auto`, `ollama`, `groq`, `gemini`, `openrouter` |
+| `GROQ_API_KEY` | Groq cloud inference |
+| `GEMINI_API_KEY` | Veo + Gemini LLM |
+| `ORCHESTRATOR_API_KEY` | Protect `/orchestrate` |
+| `WHATSAPP_MCP_URL` | WhatsApp agent MCP endpoint |
+| `ENABLE_DASHBOARD_SIMULATION` | Demo data in Streamlit (`false` default) |
+
+## Deployment Topology
+
+| Service | Local | Production |
+|---------|-------|------------|
+| Orchestrator | :8000 | Render `nivara-orchestrator` |
+| Veo MCP | :8006 | Render `nivara-veo-mcp` |
+| Social MCP | :8003 | Render `nivara-social-mcp` |
+| Dashboard | Streamlit Cloud | Streamlit Cloud |
+| Database | Supabase pooler | Supabase pooler |
+
+## Docs Index
+
+- [PHASE5.md](PHASE5.md) — This phase
+- [PRODUCTION.md](PRODUCTION.md) — Deploy checklist
+- [AGENT_ROSTER.md](AGENT_ROSTER.md) — All 20 agents
+- [PHASE4.md](PHASE4.md) — Executive agents

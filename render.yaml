@@ -24,6 +24,26 @@ services:
         sync: false
       - key: OLLAMA_MODEL
         value: llama3.2
+      - key: LLM_PROVIDER
+        value: auto
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GROQ_MODEL
+        value: llama-3.3-70b-versatile
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GEMINI_LLM_MODEL
+        value: gemini-2.0-flash
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        value: meta-llama/llama-3.3-70b-instruct
+      - key: ORCHESTRATOR_API_KEY
+        sync: false
+      - key: DEFAULT_REGION
+        value: Bangalore
+      - key: DEFAULT_STATE
+        value: Karnataka
       - key: VEO_MCP_URL
         fromService:
           name: nivara-veo-mcp

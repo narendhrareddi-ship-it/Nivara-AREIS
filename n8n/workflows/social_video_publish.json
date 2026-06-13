@@ -26,7 +26,7 @@
         "url": "http://host.docker.internal:8006/call",
         "sendBody": true,
         "specifyBody": "json",
-        "jsonBody": "={\n  \"name\": \"publish_video_to_social\",\n  \"arguments\": {\n    \"media_asset_id\": \"{{ $json.id }}\",\n    \"caption\": \"Discover luxury living with NIVARA REALTY 🏙️ #ChennaiRealEstate\",\n    \"platforms\": [\"instagram\", \"facebook\"],\n    \"project_id\": \"{{ $json.project_id }}\"\n  }\n}"
+        "jsonBody": "={\n  \"name\": \"publish_video_to_social\",\n  \"arguments\": {\n    \"media_asset_id\": \"{{ $json.id }}\",\n    \"caption\": \"Discover luxury living in Bangalore with NIVARA REALTY 🏙️ #BangaloreRealEstate #LuxuryLiving\",\n    \"platforms\": [\"instagram\", \"facebook\"],\n    \"project_id\": \"{{ $json.project_id }}\"\n  }\n}"
       },
       "id": "publish-to-social",
       "name": "Publish via Veo MCP",
@@ -36,7 +36,7 @@
     },
     {
       "parameters": {
-        "content": "## Social Video Publish Pipeline\n\nRuns daily at 10 AM IST. Publishes completed Gemini Veo videos to social platforms.\n\nRequires: veo-mcp (:8006), social-mcp (:8003), Postgres with media_assets table."
+        "content": "## Social Video Publish (Phase 5)\n\nRuns daily at 10 AM IST. Publishes completed Gemini Veo videos for Bangalore projects.\n\nRequires: veo-mcp (:8006), social-mcp (:8003), Supabase Postgres."
       },
       "id": "sticky-note",
       "name": "Note",
@@ -49,5 +49,5 @@
     "Daily 10 AM Trigger": {"main": [[{"node": "Fetch Ready Videos", "type": "main", "index": 0}]]},
     "Fetch Ready Videos": {"main": [[{"node": "Publish via Veo MCP", "type": "main", "index": 0}]]}
   },
-  "settings": {"executionOrder": "v1"}
+  "settings": {"executionOrder": "v1", "timezone": "Asia/Kolkata"}
 }

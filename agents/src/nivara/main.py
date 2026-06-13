@@ -6,9 +6,10 @@ import logging
 from typing import Any
 
 import uvicorn
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from pydantic import BaseModel, Field
 
+from nivara.auth import verify_api_key
 from nivara.config import settings
 from nivara.orchestrator.graph import AgentOrchestrator
 from nivara.regions import DEFAULT_REGION
@@ -44,15 +45,19 @@ class OrchestrateResponse(BaseModel):
 
 @app.get("/health")
 async def health() -> dict[str, Any]:
-    ollama_ok = await orchestrator.llm.health_check()
+    llm_ok = await orchestrator.llm.health_check()
+    provider = await orchestrator.llm.active_provider()
     return {
         "status": "ok",
-        "ollama": ollama_ok,
+        "llm_available": llm_ok,
+        "llm_provider": provider,
+        "ollama": provider == "ollama",
+        "api_auth_enabled": bool(settings.orchestrator_api_key.strip()),
         "supabase_configured": orchestrator.crm.is_configured(),
     }
 
 
-@app.post("/orchestrate", response_model=OrchestrateResponse)
+@app.post("/orchestrate", response_model=OrchestrateResponse, dependencies=[Depends(verify_api_key)])
 async def orchestrate(request: OrchestrateRequest) -> OrchestrateResponse:
     logger.info("Orchestrating task=%s region=%s", request.task, request.region)
     result = await orchestrator.run(

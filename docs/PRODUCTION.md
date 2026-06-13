@@ -41,10 +41,13 @@ PRs #2 (Phase 3 hosting) and #3 (Bangalore + Phase 4) merge into `main`. Streaml
 | `DB_HOST` | `aws-1-ap-south-1.pooler.supabase.com` |
 | `DB_USER` | `postgres.mxjhwjxxqtkwsrwtqwuc` |
 | `DB_PASSWORD` | your Supabase DB password |
-| `GEMINI_API_KEY` | your Gemini API key |
 | `SUPABASE_URL` | `https://mxjhwjxxqtkwsrwtqwuc.supabase.co` |
 | `SUPABASE_SERVICE_ROLE_KEY` | service role key |
-| `OLLAMA_BASE_URL` | cloud Ollama URL or leave empty (stub mode) |
+| `GEMINI_API_KEY` | your Gemini API key (Veo + LLM fallback) |
+| `GROQ_API_KEY` | Groq API key (recommended cloud LLM on Render) |
+| `LLM_PROVIDER` | `auto` (default) |
+| `ORCHESTRATOR_API_KEY` | optional API key for `/orchestrate` |
+| `OLLAMA_BASE_URL` | leave empty on Render — cloud LLM used instead |
 | `MEDIA_PUBLIC_BASE_URL` | `https://nivara-veo-mcp.onrender.com/media` |
 
 4. After deploy, note service URLs:
@@ -68,7 +71,8 @@ DB_PASSWORD = "your-password"
 
 ORCHESTRATOR_URL = "https://nivara-orchestrator.onrender.com"
 VEO_MCP_URL = "https://nivara-veo-mcp.onrender.com"
-OLLAMA_BASE_URL = "http://localhost:11434"
+# ORCHESTRATOR_API_KEY = "your-key-if-set-on-render"
+# ENABLE_DASHBOARD_SIMULATION = "false"
 ```
 
 Reboot the app after saving secrets.
@@ -81,7 +85,9 @@ Reboot the app after saving secrets.
 - [ ] Streamlit secrets updated with Render HTTPS URLs
 - [ ] Dashboard shows Bangalore market data
 - [ ] Media tab upload → veo-mcp → Supabase Storage
+- [ ] Phase 5: `GROQ_API_KEY` or `GEMINI_API_KEY` set on Render (no stub LLM)
 - [ ] Settings → Full Pipeline runs 20 agents
+- [ ] Dashboard simulation off (`ENABLE_DASHBOARD_SIMULATION` unset)
 
 ## Architecture
 
