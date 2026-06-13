@@ -42,10 +42,6 @@ services:
     dockerContext: .
     plan: free
     healthCheckPath: /health
-    disk:
-      name: veo-media
-      mountPath: /app/media_storage
-      sizeGB: 1
     envVars:
       - key: VEO_MCP_PORT
         value: "8006"

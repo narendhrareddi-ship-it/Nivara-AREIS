@@ -52,7 +52,7 @@ PRs #2 (Phase 3 hosting) and #3 (Bangalore + Phase 4) merge into `main`. Streaml
    - `https://nivara-veo-mcp.onrender.com`
    - `https://nivara-social-mcp.onrender.com`
 
-> Free Render services spin down after inactivity (~50s cold start).
+> Free Render services spin down after inactivity (~50s cold start). Free tier has no persistent disks — photos/videos are stored in **Supabase Storage** (`USE_SUPABASE_STORAGE=true`).
 
 ## 4. Streamlit Cloud secrets
 
@@ -100,6 +100,7 @@ flowchart LR
 
 | Issue | Fix |
 |-------|-----|
+| Render Blueprint disk error | Free tier cannot use disks — `render.yaml` uses Supabase Storage instead of local disk |
 | Render build fails | Check Docker build logs; ensure `agents/README.md` exists |
 | DB connection timeout | Use pooler host, not `db.xxx.supabase.co` |
 | Veo 429 quota | Enable billing on Google AI or set `VEO_MOCK=true` temporarily |
