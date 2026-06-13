@@ -43,6 +43,15 @@ class SupabaseCRM:
     def is_configured(self) -> bool:
         return bool(self._host and self._user and self._dbname)
 
+    def _adapt_params(self, data: dict[str, Any]) -> tuple[Any, ...]:
+        adapted = []
+        for value in data.values():
+            if isinstance(value, (dict, list)):
+                adapted.append(extras.Json(value))
+            else:
+                adapted.append(value)
+        return tuple(adapted)
+
     def _execute_query(self, query: str, params: tuple | list | dict = None, fetch: str = "all") -> Any:
         conn = self._get_pool().getconn()
         try:
@@ -144,21 +153,21 @@ class SupabaseCRM:
         placeholders = ", ".join(["%s"] * len(data))
         query = f"INSERT INTO social_posts ({cols}) VALUES ({placeholders}) RETURNING *"
 
-        result = self._execute_query(query, tuple(data.values()), fetch="one")
+        result = self._execute_query(query, self._adapt_params(data), fetch="one")
         return result or {}
 
     def create_media_asset(self, data: dict[str, Any]) -> dict[str, Any]:
         cols = ", ".join(data.keys())
         placeholders = ", ".join(["%s"] * len(data))
         query = f"INSERT INTO media_assets ({cols}) VALUES ({placeholders}) RETURNING *"
-        result = self._execute_query(query, tuple(data.values()), fetch="one")
+        result = self._execute_query(query, self._adapt_params(data), fetch="one")
         return result or {}
 
     def update_media_asset(self, asset_id: str, data: dict[str, Any]) -> dict[str, Any]:
         if not data:
             return self.get_media_asset(asset_id) or {}
         set_clause = ", ".join([f"{k} = %s" for k in data.keys()])
-        values = list(data.values()) + [asset_id]
+        values = list(self._adapt_params(data)) + [asset_id]
         query = f"UPDATE media_assets SET {set_clause} WHERE id = %s RETURNING *"
         result = self._execute_query(query, tuple(values), fetch="one")
         return result or {}

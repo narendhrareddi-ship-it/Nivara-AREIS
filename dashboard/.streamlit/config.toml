@@ -11,3 +11,9 @@ enableXsrfProtection = false
 
 [browser]
 gatherUsageStats = false
+
+[runner]
+fastReruns = true
+
+[client]
+showEmailPrompt = false
