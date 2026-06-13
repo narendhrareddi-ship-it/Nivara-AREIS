@@ -12,7 +12,7 @@ from theme import CSS, LOGO_SVG, CHART_COLORS, RED, RED_DARK, NAVY, GOLD, SLATE,
 from config import DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD, ORCH_URL, VEO_URL, OLLAMA_URL, DEFAULT_REGION
 from safe_data import val as _val, text as _text, fmt_dt as _fmt_dt, trunc as _trunc
 
-APP_BUILD = "2026-06-13c"
+APP_BUILD = "2026-06-13d"
 
 st.set_page_config(page_title="NIVARA — AREIS", page_icon="🏢", layout="wide", initial_sidebar_state="collapsed")
 

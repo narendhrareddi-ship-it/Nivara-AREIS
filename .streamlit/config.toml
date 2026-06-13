@@ -1,0 +1,26 @@
+[theme]
+primaryColor = "#E62429"
+backgroundColor = "#F1F5F9"
+secondaryBackgroundColor = "#FFFFFF"
+textColor = "#0F172A"
+font = "sans serif"
+
+[server]
+maxUploadSize = 10
+enableXsrfProtection = false
+headless = true
+address = "0.0.0.0"
+port = 8501
+enableCORS = false
+enableWebsocketCompression = false
+
+[browser]
+gatherUsageStats = false
+
+[runner]
+fastReruns = true
+
+[client]
+toolbarMode = "minimal"
+
+# NIVARA Streamlit Cloud — root config (entrypoint: streamlit_app.py)

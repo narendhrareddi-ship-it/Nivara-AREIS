@@ -23,11 +23,21 @@ Go to [share.streamlit.io](https://share.streamlit.io) → sign in with GitHub.
 
 ### 3. Create a new app
 
+**Easiest — paste this GitHub URL** (auto-fills repo, branch, and file):
+
+```
+https://github.com/narendhrareddi-ship-it/Nivara-AREIS/blob/main/streamlit_app.py
+```
+
+Or enter manually if dropdowns are empty:
+
 | Setting | Value |
 |---------|-------|
 | Repository | `narendhrareddi-ship-it/Nivara-AREIS` |
-| Branch | `main` (or your feature branch) |
-| Main file path | `dashboard/app.py` |
+| Branch | `main` |
+| Main file path | `streamlit_app.py` |
+
+> The repo root `streamlit_app.py` launches `dashboard/app.py` automatically. You do **not** need to set `dashboard/app.py` anymore.
 
 ### 4. Add secrets
 

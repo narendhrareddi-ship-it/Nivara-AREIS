@@ -1,0 +1,11 @@
+# Streamlit Community Cloud — one-click deploy link
+#
+# In https://share.streamlit.io → New app → Paste GitHub URL:
+https://github.com/narendhrareddi-ship-it/Nivara-AREIS/blob/main/streamlit_app.py
+#
+# Manual fields (if dropdowns are empty, type these exactly):
+#   Repository : narendhrareddi-ship-it/Nivara-AREIS
+#   Branch     : main
+#   Main file  : streamlit_app.py
+#
+# Secrets: copy from dashboard/.streamlit/secrets.toml.example into Streamlit Settings → Secrets
