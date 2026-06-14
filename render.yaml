@@ -1,15 +1,30 @@
 # Render Blueprint — NIVARA backend + dashboard
 # https://render.com/docs/blueprint-spec
-# Dashboard URL (stable): https://nivara-dashboard.onrender.com
+# Dashboard URL: https://nivara-dashboard.onrender.com
+#
+# Auto-setup (with API key): python3 scripts/render-setup.py
 
-services:
-  - type: web
-    name: nivara-dashboard
-    runtime: docker
-    dockerfilePath: ./dashboard/Dockerfile
-    dockerContext: .
-    plan: free
-    healthCheckPath: /_stcore/health
+envVarGroups:
+  - name: nivara-secrets
+    envVars:
+      - key: DB_PASSWORD
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: GROQ_API_KEY
+        sync: false
+      - key: SUPABASE_SERVICE_ROLE_KEY
+        sync: false
+      - key: SUPABASE_URL
+        sync: false
+      - key: ORCHESTRATOR_API_KEY
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OLLAMA_BASE_URL
+        sync: false
+
+  - name: nivara-db
     envVars:
       - key: DB_HOST
         value: aws-1-ap-south-1.pooler.supabase.com
@@ -19,22 +34,35 @@ services:
         value: postgres
       - key: DB_USER
         value: postgres.mxjhwjxxqtkwsrwtqwuc
-      - key: DB_PASSWORD
-        sync: false
       - key: DB_SSLMODE
         value: require
-      - key: SUPABASE_URL
-        value: https://mxjhwjxxqtkwsrwtqwuc.supabase.co
+
+services:
+  - type: web
+    name: nivara-dashboard
+    runtime: python
+    plan: free
+    region: singapore
+    buildCommand: pip install -r requirements-render.txt
+    startCommand: >-
+      streamlit run streamlit_app.py
+      --server.port=$PORT
+      --server.address=0.0.0.0
+      --server.headless=true
+      --browser.gatherUsageStats=false
+      --server.enableCORS=false
+      --server.enableXsrfProtection=false
+    healthCheckPath: /_stcore/health
+    envVarGroups:
+      - name: nivara-secrets
+      - name: nivara-db
+    envVars:
       - key: DEFAULT_REGION
         value: Bangalore
       - key: AUTO_SYNC_ON_LOAD
         value: "false"
       - key: AUTO_SYNC_PIPELINE
         value: "false"
-      - key: GROQ_API_KEY
-        sync: false
-      - key: GEMINI_API_KEY
-        sync: false
       - key: ORCHESTRATOR_URL
         value: https://nivara-orchestrator.onrender.com
       - key: VEO_MCP_URL
@@ -47,41 +75,20 @@ services:
     dockerContext: .
     plan: free
     healthCheckPath: /health
+    envVarGroups:
+      - name: nivara-secrets
+      - name: nivara-db
     envVars:
-      - key: DB_HOST
-        value: aws-1-ap-south-1.pooler.supabase.com
-      - key: DB_PORT
-        value: "5432"
-      - key: DB_NAME
-        value: postgres
-      - key: DB_USER
-        value: postgres.mxjhwjxxqtkwsrwtqwuc
-      - key: DB_PASSWORD
-        sync: false
-      - key: DB_SSLMODE
-        value: require
-      - key: SUPABASE_URL
-        value: https://mxjhwjxxqtkwsrwtqwuc.supabase.co
-      - key: OLLAMA_BASE_URL
-        sync: false
       - key: OLLAMA_MODEL
         value: llama3.2
       - key: LLM_PROVIDER
         value: auto
-      - key: GROQ_API_KEY
-        sync: false
       - key: GROQ_MODEL
         value: llama-3.3-70b-versatile
-      - key: GEMINI_API_KEY
-        sync: false
       - key: GEMINI_LLM_MODEL
         value: gemini-2.0-flash
-      - key: OPENROUTER_API_KEY
-        sync: false
       - key: OPENROUTER_MODEL
         value: meta-llama/llama-3.3-70b-instruct
-      - key: ORCHESTRATOR_API_KEY
-        sync: false
       - key: DEFAULT_REGION
         value: Bangalore
       - key: DEFAULT_STATE
@@ -98,41 +105,26 @@ services:
     dockerContext: .
     plan: free
     healthCheckPath: /health
+    envVarGroups:
+      - name: nivara-secrets
+      - name: nivara-db
     envVars:
       - key: VEO_MCP_PORT
         value: "8006"
-      - key: GEMINI_API_KEY
-        sync: false
       - key: VEO_MOCK
         value: "false"
       - key: VEO_MODEL
         value: veo-3.1-generate-preview
       - key: USE_SUPABASE_STORAGE
         value: "true"
-      - key: SUPABASE_URL
-        sync: false
-      - key: SUPABASE_SERVICE_ROLE_KEY
-        sync: false
       - key: SUPABASE_STORAGE_BUCKET
         value: media
       - key: MEDIA_STORAGE_PATH
         value: /app/media_storage
       - key: MEDIA_PUBLIC_BASE_URL
-        sync: false
+        value: https://nivara-veo-mcp.onrender.com/media
       - key: SOCIAL_MCP_URL
         value: https://nivara-social-mcp.onrender.com
-      - key: DB_HOST
-        value: aws-1-ap-south-1.pooler.supabase.com
-      - key: DB_PORT
-        value: "5432"
-      - key: DB_NAME
-        value: postgres
-      - key: DB_USER
-        value: postgres.mxjhwjxxqtkwsrwtqwuc
-      - key: DB_PASSWORD
-        sync: false
-      - key: DB_SSLMODE
-        value: require
 
   - type: web
     name: nivara-social-mcp
@@ -141,18 +133,9 @@ services:
     dockerContext: .
     plan: free
     healthCheckPath: /health
+    envVarGroups:
+      - name: nivara-secrets
+      - name: nivara-db
     envVars:
       - key: SOCIAL_MCP_PORT
         value: "8003"
-      - key: DB_HOST
-        value: aws-1-ap-south-1.pooler.supabase.com
-      - key: DB_PORT
-        value: "5432"
-      - key: DB_NAME
-        value: postgres
-      - key: DB_USER
-        value: postgres.mxjhwjxxqtkwsrwtqwuc
-      - key: DB_PASSWORD
-        sync: false
-      - key: DB_SSLMODE
-        value: require

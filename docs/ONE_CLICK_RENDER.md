@@ -1,55 +1,56 @@
-# One-click Render setup (dashboard + backend)
+# One-click Render setup
 
-The dashboard is now defined in `render.yaml` as **nivara-dashboard**.
+## Fully automated (recommended)
 
-Stable URL after deploy: **https://nivara-dashboard.onrender.com**
+### Step 1 — Add GitHub secrets (one time)
 
-## What was done automatically (in this repo)
+Repo → **Settings → Secrets and variables → Actions → New repository secret**
 
-- Merged PR #5 to `main` (speed fixes, video UI, permanent shortcut launcher)
-- Pipeline synced to **20/20** agents in Supabase
-- Added `nivara-dashboard` service to `render.yaml`
-- Default shortcut URL → Render (not dead Streamlit URL)
-- Bootstrap script: `python3 scripts/bootstrap-all.py`
+| Secret | Value |
+|--------|-------|
+| `RENDER_API_KEY` | From https://dashboard.render.com/u/settings#api-keys |
+| `DB_PASSWORD` | Your Supabase database password |
+| `GEMINI_API_KEY` | Optional — from `.env` |
+| `GROQ_API_KEY` | Optional |
+| `SUPABASE_URL` | `https://mxjhwjxxqtkwsrwtqwuc.supabase.co` |
+| `SUPABASE_SERVICE_ROLE_KEY` | From Supabase project settings |
 
-## One step you must do on Render (2 minutes)
+### Step 2 — Run workflow
 
-Render cannot be controlled from this agent without your Render login.
+GitHub → **Actions → Render Auto-Setup → Run workflow**
 
-1. Open **https://dashboard.render.com**
-2. Open your **Nivara** blueprint (or connect repo `narendhrareddi-ship-it/Nivara-AREIS`)
-3. Click **Sync Blueprint** / **Apply** — creates `nivara-dashboard`
-4. For **each** service missing env vars, set:
+This sets env vars on all 4 services and triggers deploys.
 
-| Key | Value |
-|-----|-------|
-| `DB_PASSWORD` | Your Supabase DB password |
-| `GEMINI_API_KEY` | Your Gemini key (optional, for LLM/video) |
-| `GROQ_API_KEY` | Your Groq key (optional) |
+---
 
-5. Wait until **nivara-dashboard** shows **Live**
-6. Open **https://nivara-dashboard.onrender.com**
+## Local automation
 
-## Windows shortcut (after Render is live)
-
-```
-Install-NIVARA-Desktop-Shortcut.bat
+```bash
+cp .env.render.example .env.render
+# Edit .env.render → add RENDER_API_KEY=rnd_...
+python3 scripts/render-setup.py
 ```
 
-Uses local launcher → opens `https://nivara-dashboard.onrender.com`
+Reads `DB_PASSWORD` and other secrets from `.env`.
 
-## Optional: Streamlit Cloud
+---
 
-Only if you prefer Streamlit over Render:
+## Manual fallback (no API key)
 
-1. https://share.streamlit.io → deploy `streamlit_app.py`
-2. Subdomain: `nivara-areis`
-3. Paste secrets from `generated/streamlit-secrets.toml` (run bootstrap script locally)
+1. https://dashboard.render.com → Blueprints → **Sync** repo `nivara-AREIS`
+2. When prompted, fill **nivara-secrets** group once:
+   - `DB_PASSWORD` = your Supabase password
+   - `GEMINI_API_KEY` = optional
+3. Wait for **nivara-dashboard** → Live
+4. Open https://nivara-dashboard.onrender.com
 
-## Verify everything
+---
+
+## Verify
 
 ```bash
 python3 scripts/bootstrap-all.py
 ```
 
-All checks should show `[OK]`.
+Dashboard: https://nivara-dashboard.onrender.com  
+Orchestrator should show `"db_connected": true` after password is set.
