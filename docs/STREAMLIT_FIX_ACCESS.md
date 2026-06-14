@@ -1,6 +1,8 @@
 # Fix: "You do not have access to this app or it does not exist"
 
-That error means the **Streamlit Cloud app is not deployed** (or was deleted) under your account. The shortcut URL is dead — not a problem with your desktop icon.
+**Permanent fix:** see **[PERMANENT_SHORTCUT_FIX.md](./PERMANENT_SHORTCUT_FIX.md)** — local launcher + stable subdomain `nivara-areis`.
+
+That error means the **Streamlit Cloud app is not deployed** (or was deleted) under your account. Hardcoded shortcut URLs break every redeploy.
 
 ## Fix in 5 minutes (Windows + your GitHub account)
 
