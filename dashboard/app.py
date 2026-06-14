@@ -26,7 +26,7 @@ from pipeline_sync import (
 )
 from safe_data import val as _val, text as _text, fmt_dt as _fmt_dt, trunc as _trunc
 
-APP_BUILD = "2026-06-13j"
+APP_BUILD = "2026-06-14b"
 
 AGENT_SIM_DETAILS: dict[str, tuple[str, str]] = {
     "MarketAnalyst": ("Analyzing Bangalore property market trends", "Market report: Whitefield prices up 9% YoY"),
@@ -410,6 +410,62 @@ with t2:
 
 # ═══ TAB 3 ═══
 with t3:
+    # Featured latest video post (Bangalore demo)
+    featured = q(
+        "SELECT sp.*, ma.source_url AS photo_url "
+        "FROM social_posts sp "
+        "LEFT JOIN media_assets ma ON ma.id = sp.media_asset_id "
+        "WHERE sp.platform = 'facebook' "
+        "AND (sp.metadata->>'media_type' = 'video' OR sp.content ILIKE '%Whitefield%') "
+        "ORDER BY sp.published_at DESC LIMIT 1",
+        one=True,
+    )
+    if featured:
+        meta = featured.get("metadata") or {}
+        if isinstance(meta, str):
+            import json as _json
+            try:
+                meta = _json.loads(meta)
+            except Exception:
+                meta = {}
+        video_urls = meta.get("media_urls") or []
+        photo_url = _text(featured, "photo_url", "")
+        if not photo_url:
+            photo_row = q(
+                "SELECT source_url FROM media_assets WHERE asset_type='photo' "
+                "AND source_url LIKE '%bangalore%' ORDER BY created_at DESC LIMIT 1",
+                one=True,
+            )
+            photo_url = _text(photo_row, "source_url", "") if photo_row else ""
+        st.markdown('<div class="section-title">Latest Video Post — Facebook (Mock)</div>', unsafe_allow_html=True)
+        fc1, fc2 = st.columns([1, 2])
+        with fc1:
+            playable = [u for u in video_urls if u and "storage.mock.nivara.ai" not in u]
+            if playable:
+                try:
+                    st.video(playable[0])
+                except Exception:
+                    st.markdown(f"[Open video]({playable[0]})")
+            elif photo_url:
+                st.image(photo_url, caption="Site photo → Gemini Veo (mock mode)", use_container_width=True)
+            if video_urls and not playable:
+                st.caption("Mock Veo video URL — add GEMINI_API_KEY on Render for real MP4 output.")
+        with fc2:
+            st.markdown(
+                post_card(
+                    "FACEBOOK · VIDEO",
+                    _fmt_dt(featured.get("published_at")),
+                    _text(featured, "content", ""),
+                    _val(featured, "reach", 0) or 12400,
+                ),
+                unsafe_allow_html=True,
+            )
+            if video_urls:
+                st.markdown(f"**Video asset:** `{video_urls[0]}`")
+            if featured.get("is_mock"):
+                st.caption("Simulated Facebook post — stored in Supabase, not sent to Meta.")
+        st.markdown("<br>", unsafe_allow_html=True)
+
     c1, c2 = st.columns([1, 4])
     with c1:
         pf = st.selectbox("", ["All","facebook","instagram","linkedin","twitter"], label_visibility="collapsed", key="filter_platform")
@@ -439,15 +495,26 @@ with t3:
     posts = q(sql, tuple(p2))
     if posts:
         for p in posts:
+            meta = p.get("metadata") or {}
+            if isinstance(meta, str):
+                import json as _json
+                try:
+                    meta = _json.loads(meta)
+                except Exception:
+                    meta = {}
+            video_urls = meta.get("media_urls") or []
+            badge = " · VIDEO" if meta.get("media_type") == "video" else ""
             st.markdown(
                 post_card(
-                    _text(p, "platform", "unknown").upper(),
+                    (_text(p, "platform", "unknown").upper() + badge),
                     _fmt_dt(p.get("published_at")),
                     _text(p, "content", ""),
                     _val(p, "reach", 0),
                 ),
                 unsafe_allow_html=True,
             )
+            if video_urls:
+                st.markdown(f'<p style="font-size:0.75rem;margin:-8px 0 12px 0"><a href="{video_urls[0]}" target="_blank">▶ Attached video</a></p>', unsafe_allow_html=True)
     else:
         st.info("No posts yet. Click SIMULATE POST to generate one.")
 
@@ -551,14 +618,24 @@ with t4:
                 prompt = _text(m, "prompt", "", 100)
                 asset_type = _text(m, "asset_type", "unknown").upper()
                 status = _text(m, "status", "unknown").upper()
-                st.markdown(
-                    f'<div class="card" style="margin-bottom:8px">'
-                    f'<span style="font-size:0.72rem;font-weight:700;color:{RED}">'
-                    f'{asset_type} — {status}</span>'
-                    f'<p style="font-size:0.8rem;color:{SLATE};margin:4px 0">{prompt}</p>'
-                    f'<p style="font-size:0.7rem;color:#94A3B8">{_trunc(url, 80)}</p></div>',
-                    unsafe_allow_html=True,
-                )
+                mc1, mc2 = st.columns([1, 2])
+                with mc1:
+                    if asset_type == "PHOTO" and url and ("http" in url):
+                        try:
+                            st.image(url, use_container_width=True)
+                        except Exception:
+                            st.caption("Photo preview unavailable")
+                    elif asset_type == "VIDEO" and url:
+                        st.markdown(f"🎬 **Video**  \n[{_trunc(url, 60)}]({url})")
+                with mc2:
+                    st.markdown(
+                        f'<div class="card" style="margin-bottom:8px">'
+                        f'<span style="font-size:0.72rem;font-weight:700;color:{RED}">'
+                        f'{asset_type} — {status}</span>'
+                        f'<p style="font-size:0.8rem;color:{SLATE};margin:4px 0">{prompt}</p>'
+                        f'<p style="font-size:0.7rem;color:#94A3B8"><a href="{url}" target="_blank">{_trunc(url, 80)}</a></p></div>',
+                        unsafe_allow_html=True,
+                    )
         else:
             st.info("No media assets yet. Upload a site photo to get started.")
     except Exception as exc:
