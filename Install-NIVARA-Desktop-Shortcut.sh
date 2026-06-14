@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 # Double-click or run: bash Install-NIVARA-Desktop-Shortcut.sh
-URL="https://nivara-areis-etzshrs4dtzuyqmsnv8bds.streamlit.app/"
+URL="https://nivara-areis.streamlit.app/"
 DESK="$HOME/Desktop"
 mkdir -p "$DESK"
 FILE="$DESK/NIVARA-AREIS.desktop"

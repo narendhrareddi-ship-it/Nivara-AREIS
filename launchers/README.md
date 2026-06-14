@@ -1,6 +1,6 @@
 # NIVARA AREIS — Desktop Launcher
 
-**Dashboard URL:** https://nivara-areis-etzshrs4dtzuyqmsnv8bds.streamlit.app/
+**Dashboard URL:** https://nivara-areis.streamlit.app/
 
 Copy one of these files to your **Desktop** and double-click to open the dashboard (no URL to remember).
 

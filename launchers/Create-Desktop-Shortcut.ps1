@@ -1,7 +1,7 @@
 # Run once in PowerShell: right-click → Run with PowerShell
 # Or: powershell -ExecutionPolicy Bypass -File Create-Desktop-Shortcut.ps1
 
-$AppUrl = "https://nivara-areis-etzshrs4dtzuyqmsnv8bds.streamlit.app/"
+$AppUrl = "https://nivara-areis.streamlit.app/"
 $Desktop = [Environment]::GetFolderPath("Desktop")
 $ShortcutPath = Join-Path $Desktop "NIVARA AREIS.lnk"
 

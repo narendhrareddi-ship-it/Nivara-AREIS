@@ -5,12 +5,9 @@ echo ============================================================
 echo   NIVARA AREIS - Update Desktop Shortcut
 echo ============================================================
 echo.
-echo The old Streamlit URL no longer works. You need your NEW URL
-echo from https://share.streamlit.io after deploying the app.
+echo Updating shortcut to: https://nivara-areis.streamlit.app/
 echo.
-echo See docs\STREAMLIT_FIX_ACCESS.md for full deploy steps.
-echo.
-set /p APPURL="Paste your NEW Streamlit URL (e.g. https://myapp.streamlit.app/): "
+set APPURL=https://nivara-areis.streamlit.app/
 
 if "%APPURL%"=="" (
     echo No URL entered. Opening Streamlit Cloud to deploy...

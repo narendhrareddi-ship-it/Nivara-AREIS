@@ -3,7 +3,7 @@ title NIVARA AREIS - Install Desktop Shortcut
 echo Creating NIVARA AREIS shortcut on your Desktop...
 
 powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$url='https://nivara-areis-etzshrs4dtzuyqmsnv8bds.streamlit.app/'; ^
+  "$url='https://nivara-areis.streamlit.app/'; ^
    $desk=[Environment]::GetFolderPath('Desktop'); ^
    $lnk=Join-Path $desk 'NIVARA AREIS.lnk'; ^
    $s=(New-Object -ComObject WScript.Shell).CreateShortcut($lnk); ^
