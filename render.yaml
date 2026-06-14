@@ -9,6 +9,7 @@ services:
     dockerfilePath: ./dashboard/Dockerfile
     dockerContext: .
     plan: free
+    healthCheckPath: /_stcore/health
     envVars:
       - key: DB_HOST
         value: aws-1-ap-south-1.pooler.supabase.com
@@ -29,7 +30,7 @@ services:
       - key: AUTO_SYNC_ON_LOAD
         value: "false"
       - key: AUTO_SYNC_PIPELINE
-        value: "true"
+        value: "false"
       - key: GROQ_API_KEY
         sync: false
       - key: GEMINI_API_KEY
@@ -86,15 +87,9 @@ services:
       - key: DEFAULT_STATE
         value: Karnataka
       - key: VEO_MCP_URL
-        fromService:
-          name: nivara-veo-mcp
-          type: web
-          property: hostport
+        value: https://nivara-veo-mcp.onrender.com
       - key: SOCIAL_MCP_URL
-        fromService:
-          name: nivara-social-mcp
-          type: web
-          property: hostport
+        value: https://nivara-social-mcp.onrender.com
 
   - type: web
     name: nivara-veo-mcp
@@ -125,10 +120,7 @@ services:
       - key: MEDIA_PUBLIC_BASE_URL
         sync: false
       - key: SOCIAL_MCP_URL
-        fromService:
-          name: nivara-social-mcp
-          type: web
-          property: hostport
+        value: https://nivara-social-mcp.onrender.com
       - key: DB_HOST
         value: aws-1-ap-south-1.pooler.supabase.com
       - key: DB_PORT

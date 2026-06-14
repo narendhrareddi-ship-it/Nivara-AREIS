@@ -1,0 +1,2 @@
+# Render dashboard — lightweight (no in-process agents; uses HTTP orchestrator)
+-r dashboard/requirements.txt
