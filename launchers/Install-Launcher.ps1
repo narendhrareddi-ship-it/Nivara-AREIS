@@ -25,7 +25,7 @@ Set-Content -Path $LauncherBat -Value $bat -Encoding ASCII
 
 $urlFile = Join-Path $TargetDir "dashboard.url"
 if (-not (Test-Path $urlFile)) {
-    Set-Content -Path $urlFile -Value "https://nivara-areis.streamlit.app/" -Encoding UTF8
+    Set-Content -Path $urlFile -Value "https://nivara-dashboard.onrender.com/" -Encoding UTF8
 }
 
 $shell = New-Object -ComObject WScript.Shell

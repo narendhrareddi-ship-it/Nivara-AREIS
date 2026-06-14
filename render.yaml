@@ -1,7 +1,44 @@
-# Render Blueprint — NIVARA backend services
+# Render Blueprint — NIVARA backend + dashboard
 # https://render.com/docs/blueprint-spec
+# Dashboard URL (stable): https://nivara-dashboard.onrender.com
 
 services:
+  - type: web
+    name: nivara-dashboard
+    runtime: docker
+    dockerfilePath: ./dashboard/Dockerfile
+    dockerContext: .
+    plan: free
+    envVars:
+      - key: DB_HOST
+        value: aws-1-ap-south-1.pooler.supabase.com
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: postgres
+      - key: DB_USER
+        value: postgres.mxjhwjxxqtkwsrwtqwuc
+      - key: DB_PASSWORD
+        sync: false
+      - key: DB_SSLMODE
+        value: require
+      - key: SUPABASE_URL
+        value: https://mxjhwjxxqtkwsrwtqwuc.supabase.co
+      - key: DEFAULT_REGION
+        value: Bangalore
+      - key: AUTO_SYNC_ON_LOAD
+        value: "false"
+      - key: AUTO_SYNC_PIPELINE
+        value: "true"
+      - key: GROQ_API_KEY
+        sync: false
+      - key: GEMINI_API_KEY
+        sync: false
+      - key: ORCHESTRATOR_URL
+        value: https://nivara-orchestrator.onrender.com
+      - key: VEO_MCP_URL
+        value: https://nivara-veo-mcp.onrender.com
+
   - type: web
     name: nivara-orchestrator
     runtime: docker

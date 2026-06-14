@@ -1,0 +1,38 @@
+name: Production Health Check
+
+on:
+  schedule:
+    - cron: "0 */12 * * *"
+  workflow_dispatch:
+
+jobs:
+  health:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install python-dotenv psycopg2-binary requests
+
+      - name: Check Render endpoints
+        run: |
+          python3 - <<'PY'
+          import requests
+          checks = {
+              "orchestrator": "https://nivara-orchestrator.onrender.com/health",
+              "veo": "https://nivara-veo-mcp.onrender.com/health",
+              "social": "https://nivara-social-mcp.onrender.com/health",
+              "dashboard": "https://nivara-dashboard.onrender.com/",
+          }
+          for name, url in checks.items():
+              try:
+                  r = requests.get(url, timeout=25)
+                  print(f"{name}: HTTP {r.status_code}")
+              except Exception as e:
+                  print(f"{name}: FAIL {e}")
+          PY

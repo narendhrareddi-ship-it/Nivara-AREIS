@@ -24,5 +24,8 @@ The desktop shortcut must NOT point here directly.
 One-click GitHub link:
 https://github.com/narendhrareddi-ship-it/Nivara-AREIS/blob/main/streamlit_app.py
 
-## Default target URL (after deploy)
+## Default target URL (Render — stable, no Streamlit OAuth)
+https://nivara-dashboard.onrender.com/
+
+## Optional Streamlit URL (after manual deploy)
 https://nivara-areis.streamlit.app/
