@@ -1,32 +1,38 @@
 import streamlit as st
-import psycopg2
-from psycopg2.extras import RealDictCursor
 import pandas as pd
-import os
 from datetime import datetime, timedelta
 import plotly.graph_objects as go
 import plotly.express as px
 import random
 
-from theme import CSS, LOGO_SVG, CHART_COLORS, RED, RED_DARK, NAVY, GOLD, SLATE, plotly_layout, stat_card, market_chip, post_card
+from theme import CSS, LOGO_SVG, CHART_COLORS, RED, RED_DARK, NAVY, SLATE, plotly_layout, stat_card, market_chip, post_card
 from config import (
     DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD,
     ORCH_URL, VEO_URL, OLLAMA_URL, DEFAULT_REGION,
-    connection_config, password_is_placeholder,
+    connection_config,
     ENABLE_DASHBOARD_SIMULATION, orchestrator_headers,
-    AUTO_SYNC_PIPELINE, AUTO_SYNC_INTERVAL_MINUTES,
+    AUTO_SYNC_PIPELINE, AUTO_SYNC_ON_LOAD, AUTO_SYNC_INTERVAL_MINUTES,
     GROQ_API_KEY, GEMINI_API_KEY,
 )
 from pipeline_sync import (
     PIPELINE_AGENTS,
     LEGACY_12_AGENTS,
     auto_sync_pipeline,
-    latest_cycle_completed,
     needs_immediate_sync,
+)
+from fast_db import (
+    q,
+    get_conn,
+    check_db,
+    load_performance_stats,
+    pipeline_cycle_status,
+    fetch_orchestrator_health,
+    fetch_ollama_online,
+    invalidate_reads,
 )
 from safe_data import val as _val, text as _text, fmt_dt as _fmt_dt, trunc as _trunc
 
-APP_BUILD = "2026-06-13j"
+APP_BUILD = "2026-06-14c"
 
 AGENT_SIM_DETAILS: dict[str, tuple[str, str]] = {
     "MarketAnalyst": ("Analyzing Bangalore property market trends", "Market report: Whitefield prices up 9% YoY"),
@@ -59,38 +65,6 @@ RE_AGENTS = [
 
 st.set_page_config(page_title="NIVARA — AREIS", page_icon="🏢", layout="wide", initial_sidebar_state="collapsed")
 
-_last_db_error: str | None = None
-
-def db():
-    global _last_db_error
-    try:
-        return psycopg2.connect(
-            host=DB_HOST,
-            port=DB_PORT,
-            database=DB_NAME,
-            user=DB_USER,
-            password=DB_PASSWORD,
-            cursor_factory=RealDictCursor,
-            sslmode="require",
-            connect_timeout=15,
-        )
-    except Exception as exc:
-        _last_db_error = str(exc)
-        return None
-
-def q(sql, p=None, one=False):
-    c = db()
-    if not c:
-        return None if one else []
-    try:
-        with c.cursor() as cur:
-            cur.execute(sql, p)
-            return cur.fetchone() if one else cur.fetchall()
-    except Exception:
-        return None if one else []
-    finally:
-        c.close()
-
 RE_POSTS = [
     ("instagram", "Premium 3BHK apartments in Whitefield Bangalore with world-class amenities. Starting at \u20b91.2Cr. DM for virtual tour! #BangaloreRealEstate #LuxuryLiving", (2800, 38000)),
     ("facebook", "New launch alert! Sarjapur Road luxury villas with lake views. Pre-launch prices from \u20b92.1Cr. Register Now!", (5200, 58000)),
@@ -112,8 +86,9 @@ RE_CHAT = [
 ]
 
 def simulate_activity():
-    conn = db()
-    if not conn: return
+    conn = get_conn()
+    if not conn:
+        return
     cur = conn.cursor()
     try:
         cur.execute("SELECT MAX(timestamp) AS t FROM bot_logs")
@@ -146,14 +121,15 @@ def simulate_activity():
                         (lead["id"], msg[0], msg[1], msg[2], msg[3]))
 
         conn.commit()
-    except:
+        invalidate_reads()
+    except Exception:
         conn.rollback()
     finally:
-        conn.close()
+        cur.close()
 
 st.markdown(CSS, unsafe_allow_html=True)
 
-_db_ok = db() is not None
+_db_ok, _last_db_error = check_db()
 if not _db_ok:
     cfg = connection_config()
     if cfg["password_placeholder"]:
@@ -193,7 +169,7 @@ elif _db_ok and ENABLE_DASHBOARD_SIMULATION:
     simulate_activity()
 
 _pipeline_sync_status: dict | None = None
-if _db_ok and AUTO_SYNC_PIPELINE and not ENABLE_DASHBOARD_SIMULATION:
+if _db_ok and AUTO_SYNC_PIPELINE and AUTO_SYNC_ON_LOAD and not ENABLE_DASHBOARD_SIMULATION:
     _should_sync, _sync_reason = needs_immediate_sync(q)
     _session_cooldown = st.session_state.get("_pipeline_sync_at")
     _cooldown_ok = (
@@ -218,6 +194,7 @@ if _db_ok and AUTO_SYNC_PIPELINE and not ENABLE_DASHBOARD_SIMULATION:
                 groq_api_key=GROQ_API_KEY,
                 gemini_api_key=GEMINI_API_KEY,
             )
+            invalidate_reads()
 
 # ── Hero header ──
 if _pipeline_sync_status and _pipeline_sync_status.get("synced"):
@@ -262,26 +239,19 @@ for i, (mcol, (label, val, sub)) in enumerate(zip([m1, m2, m3, m4], market_data)
     with mcol:
         st.markdown(market_chip(label, val, sub), unsafe_allow_html=True)
 
-# ── Stats ──
+# ── Stats (single batched query, cached) ──
 st.markdown('<div class="section-title">Performance Metrics</div>', unsafe_allow_html=True)
-lq = q("SELECT count(*) c FROM leads", one=True)
-hq = q("SELECT count(*) c FROM leads WHERE score >= 70", one=True)
-pq = q("SELECT count(*) c FROM social_posts", one=True)
-bq = q("SELECT count(*) c FROM bot_logs", one=True)
-aq = q("SELECT COALESCE(AVG(score),0)::int a FROM leads", one=True)
-cq = q("SELECT count(*) c FROM leads WHERE status='converted'", one=True)
-rq = q("SELECT COALESCE(SUM(reach),0) r FROM social_posts", one=True)
-tq = q("SELECT count(*) c FROM crm_activity", one=True)
+stats_row = load_performance_stats() if _db_ok else {}
 
 stats = [
-    (_val(lq, "c"), "Total Leads", "Active targets", "red"),
-    (_val(hq, "c"), "Hot Leads", "Score ≥ 70", "red"),
-    (str(_val(aq, "a")), "Avg Score", "Lead quality", "gold"),
-    (_val(cq, "c"), "Converted", "Deals closed", "green"),
-    (_val(pq, "c"), "Posts", "Published", "gold"),
-    (f'{_val(rq, "r"):,}', "Total Reach", "Social impressions", "navy"),
-    (_val(bq, "c"), "Agent Runs", "Executions", "blue"),
-    (_val(tq, "c"), "CRM Actions", "Activities", "green"),
+    (stats_row.get("total_leads", 0), "Total Leads", "Active targets", "red"),
+    (stats_row.get("hot_leads", 0), "Hot Leads", "Score ≥ 70", "red"),
+    (str(stats_row.get("avg_score", 0)), "Avg Score", "Lead quality", "gold"),
+    (stats_row.get("converted", 0), "Converted", "Deals closed", "green"),
+    (stats_row.get("posts", 0), "Posts", "Published", "gold"),
+    (f'{stats_row.get("total_reach", 0):,}', "Total Reach", "Social impressions", "navy"),
+    (stats_row.get("agent_runs", 0), "Agent Runs", "Executions", "blue"),
+    (stats_row.get("crm_actions", 0), "CRM Actions", "Activities", "green"),
 ]
 
 s1, s2, s3, s4 = st.columns(4)
@@ -304,7 +274,9 @@ with t1:
     with c1: sf = st.selectbox("", ["All", "success", "processing", "error"], label_visibility="collapsed", key="filter_status")
     with c2: af = st.selectbox("", ["All"] + PIPELINE_AGENTS, label_visibility="collapsed", key="filter_agent")
     with c3:
-        if st.button(u"\u27F3 REFRESH", key="refresh_activity"): st.rerun()
+        if st.button(u"\u27F3 REFRESH", key="refresh_activity"):
+            invalidate_reads()
+            st.rerun()
     sql = "SELECT * FROM bot_logs WHERE 1=1"; pr = []
     if sf != "All": sql += " AND status=%s"; pr.append(sf)
     if af != "All": sql += " AND agent_name=%s"; pr.append(af)
@@ -333,21 +305,16 @@ with t1:
 # ═══ TAB 2 ═══
 with t2:
     agents = PIPELINE_AGENTS
+    _, done = pipeline_cycle_status()
     pl = q("SELECT agent_name,action,status,timestamp FROM bot_logs WHERE timestamp>=COALESCE((SELECT MAX(timestamp) FROM bot_logs WHERE agent_name='MarketAnalyst' AND action='Starting task'),now()-interval'1 hour') ORDER BY timestamp ASC")
-    done = set(); running = None
+    running = None
     if pl:
         for r in pl:
             if r["action"]=="Starting task": running = r["agent_name"]
-            elif r["action"]=="Task completed": done.add(r["agent_name"]); running = None if running==r["agent_name"] else running
+            elif r["action"]=="Task completed": running = None if running==r["agent_name"] else running
 
-    orch_agent_count = None
-    try:
-        import requests
-        hr = requests.get(f"{ORCH_URL}/health", timeout=8)
-        if hr.ok:
-            orch_agent_count = hr.json().get("agent_count")
-    except Exception:
-        pass
+    orch_health = fetch_orchestrator_health(ORCH_URL)
+    orch_agent_count = orch_health.get("agent_count")
 
     if orch_agent_count is not None and orch_agent_count < len(agents):
         st.error(
@@ -410,6 +377,62 @@ with t2:
 
 # ═══ TAB 3 ═══
 with t3:
+    # Featured latest video post (Bangalore demo)
+    featured = q(
+        "SELECT sp.*, ma.source_url AS photo_url "
+        "FROM social_posts sp "
+        "LEFT JOIN media_assets ma ON ma.id = sp.media_asset_id "
+        "WHERE sp.platform = 'facebook' "
+        "AND (sp.metadata->>'media_type' = 'video' OR sp.content ILIKE '%Whitefield%') "
+        "ORDER BY sp.published_at DESC LIMIT 1",
+        one=True,
+    )
+    if featured:
+        meta = featured.get("metadata") or {}
+        if isinstance(meta, str):
+            import json as _json
+            try:
+                meta = _json.loads(meta)
+            except Exception:
+                meta = {}
+        video_urls = meta.get("media_urls") or []
+        photo_url = _text(featured, "photo_url", "")
+        if not photo_url:
+            photo_row = q(
+                "SELECT source_url FROM media_assets WHERE asset_type='photo' "
+                "AND source_url LIKE '%bangalore%' ORDER BY created_at DESC LIMIT 1",
+                one=True,
+            )
+            photo_url = _text(photo_row, "source_url", "") if photo_row else ""
+        st.markdown('<div class="section-title">Latest Video Post — Facebook (Mock)</div>', unsafe_allow_html=True)
+        fc1, fc2 = st.columns([1, 2])
+        with fc1:
+            playable = [u for u in video_urls if u and "storage.mock.nivara.ai" not in u]
+            if playable:
+                try:
+                    st.video(playable[0])
+                except Exception:
+                    st.markdown(f"[Open video]({playable[0]})")
+            elif photo_url:
+                st.image(photo_url, caption="Site photo → Gemini Veo (mock mode)", use_container_width=True)
+            if video_urls and not playable:
+                st.caption("Mock Veo video URL — add GEMINI_API_KEY on Render for real MP4 output.")
+        with fc2:
+            st.markdown(
+                post_card(
+                    "FACEBOOK · VIDEO",
+                    _fmt_dt(featured.get("published_at")),
+                    _text(featured, "content", ""),
+                    _val(featured, "reach", 0) or 12400,
+                ),
+                unsafe_allow_html=True,
+            )
+            if video_urls:
+                st.markdown(f"**Video asset:** `{video_urls[0]}`")
+            if featured.get("is_mock"):
+                st.caption("Simulated Facebook post — stored in Supabase, not sent to Meta.")
+        st.markdown("<br>", unsafe_allow_html=True)
+
     c1, c2 = st.columns([1, 4])
     with c1:
         pf = st.selectbox("", ["All","facebook","instagram","linkedin","twitter"], label_visibility="collapsed", key="filter_platform")
@@ -439,15 +462,26 @@ with t3:
     posts = q(sql, tuple(p2))
     if posts:
         for p in posts:
+            meta = p.get("metadata") or {}
+            if isinstance(meta, str):
+                import json as _json
+                try:
+                    meta = _json.loads(meta)
+                except Exception:
+                    meta = {}
+            video_urls = meta.get("media_urls") or []
+            badge = " · VIDEO" if meta.get("media_type") == "video" else ""
             st.markdown(
                 post_card(
-                    _text(p, "platform", "unknown").upper(),
+                    (_text(p, "platform", "unknown").upper() + badge),
                     _fmt_dt(p.get("published_at")),
                     _text(p, "content", ""),
                     _val(p, "reach", 0),
                 ),
                 unsafe_allow_html=True,
             )
+            if video_urls:
+                st.markdown(f'<p style="font-size:0.75rem;margin:-8px 0 12px 0"><a href="{video_urls[0]}" target="_blank">▶ Attached video</a></p>', unsafe_allow_html=True)
     else:
         st.info("No posts yet. Click SIMULATE POST to generate one.")
 
@@ -546,21 +580,35 @@ with t4:
             "FROM media_assets ORDER BY created_at DESC LIMIT 20"
         )
         if media:
-            for m in media:
+            for i, m in enumerate(media):
+                if i >= 8:
+                    break
                 url = _text(m, "output_url") or _text(m, "source_url")
                 prompt = _text(m, "prompt", "", 100)
                 asset_type = _text(m, "asset_type", "unknown").upper()
                 status = _text(m, "status", "unknown").upper()
-                st.markdown(
-                    f'<div class="card" style="margin-bottom:8px">'
-                    f'<span style="font-size:0.72rem;font-weight:700;color:{RED}">'
-                    f'{asset_type} — {status}</span>'
-                    f'<p style="font-size:0.8rem;color:{SLATE};margin:4px 0">{prompt}</p>'
-                    f'<p style="font-size:0.7rem;color:#94A3B8">{_trunc(url, 80)}</p></div>',
-                    unsafe_allow_html=True,
-                )
+                mc1, mc2 = st.columns([1, 2])
+                with mc1:
+                    if asset_type == "PHOTO" and url and ("http" in url):
+                        try:
+                            st.image(url, use_container_width=True)
+                        except Exception:
+                            st.caption("Photo preview unavailable")
+                    elif asset_type == "VIDEO" and url:
+                        st.markdown(f"🎬 **Video**  \n[{_trunc(url, 60)}]({url})")
+                with mc2:
+                    st.markdown(
+                        f'<div class="card" style="margin-bottom:8px">'
+                        f'<span style="font-size:0.72rem;font-weight:700;color:{RED}">'
+                        f'{asset_type} — {status}</span>'
+                        f'<p style="font-size:0.8rem;color:{SLATE};margin:4px 0">{prompt}</p>'
+                        f'<p style="font-size:0.7rem;color:#94A3B8"><a href="{url}" target="_blank">{_trunc(url, 80)}</a></p></div>',
+                        unsafe_allow_html=True,
+                    )
         else:
             st.info("No media assets yet. Upload a site photo to get started.")
+        if media and len(media) > 8:
+            st.caption(f"Showing 8 of {len(media)} assets. Refresh to see latest.")
     except Exception as exc:
         st.warning(f"Media library could not load: {exc}")
 
@@ -691,7 +739,9 @@ with t7:
     with c3:
         if st.button(u"\u2715 CLEAR LOGS", key="clear_logs"): q("DELETE FROM bot_logs", one=True); st.success("Cleared!"); st.rerun()
     with c4:
-        if st.button(u"\u27F3 REFRESH", key="refresh_settings"): st.rerun()
+        if st.button(u"\u27F3 REFRESH", key="refresh_settings"):
+            invalidate_reads()
+            st.rerun()
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-title">Manual Agent Dispatch</div>', unsafe_allow_html=True)
     aa = PIPELINE_AGENTS
@@ -723,13 +773,14 @@ with t7:
         f"| Supabase URL set | {'Yes' if cfg['supabase_url_set'] else 'No'} |\n"
         f"| Build | `{APP_BUILD}` |\n"
         f"| Demo simulation | **{'On' if ENABLE_DASHBOARD_SIMULATION else 'Off (production)'}** |\n"
-        f"| Auto pipeline sync | **{'On' if AUTO_SYNC_PIPELINE else 'Off'}** (every {AUTO_SYNC_INTERVAL_MINUTES} min via cron) |"
+        f"| Auto pipeline sync on load | **{'On' if AUTO_SYNC_ON_LOAD else 'Off (fast mode)'}** |\n"
+        f"| Scheduled sync (GitHub Action) | **{'On' if AUTO_SYNC_PIPELINE else 'Off'}** (every {AUTO_SYNC_INTERVAL_MINUTES} min) |"
     )
     if AUTO_SYNC_PIPELINE:
-        done_now = latest_cycle_completed(q)
+        done_count, _ = pipeline_cycle_status()
         st.caption(
-            f"Pipeline status: {len(done_now)}/{len(PIPELINE_AGENTS)} agents in latest cycle. "
-            "Incomplete pipelines auto-sync on dashboard load; stale pipelines sync every 6h via GitHub Actions."
+            f"Pipeline status: {done_count}/{len(PIPELINE_AGENTS)} agents in latest cycle. "
+            "Use **▶ FULL PIPELINE** below to sync manually. Auto-sync on load is off by default for speed."
         )
     if cfg["password_placeholder"]:
         st.warning(
@@ -737,12 +788,13 @@ with t7:
             "`DB_PASSWORD = \"your-actual-supabase-password\"` then **Reboot app**."
         )
     if st.button("Test database connection", key="test_db"):
-        conn = db()
-        if conn:
-            conn.close()
+        invalidate_reads()
+        st.cache_resource.clear()
+        ok, err = check_db()
+        if ok:
             st.success("Database connection OK!")
         else:
-            st.error(f"Connection failed: {_last_db_error or 'unknown error'}")
+            st.error(f"Connection failed: {err or 'unknown error'}")
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown('<div class="section-title">System Status</div>', unsafe_allow_html=True)
     s1, s2, s3, s4 = st.columns(4)
@@ -761,42 +813,31 @@ with t7:
         )
 
     with s1:
-        st.markdown(status_card("PostgreSQL", bool(db())), unsafe_allow_html=True)
+        st.markdown(status_card("PostgreSQL", _db_ok), unsafe_allow_html=True)
     with s2:
-        try:
-            import requests
-            r = requests.get(f"{ORCH_URL}/health", timeout=10)
-            d = r.json() if r.ok else {}
-            online = r.ok and d.get("db_connected", False)
-            st.markdown(status_card("Orchestrator", online), unsafe_allow_html=True)
-            if r.ok and not d.get("db_connected"):
-                st.caption("Orchestrator up but DB not connected — set DB_SSLMODE=require on Render")
-        except Exception:
-            st.markdown(status_card("Orchestrator", None), unsafe_allow_html=True)
+        orch_health = fetch_orchestrator_health(ORCH_URL)
+        online = bool(orch_health) and orch_health.get("db_connected", False)
+        st.markdown(status_card("Orchestrator", online if orch_health else None), unsafe_allow_html=True)
+        if orch_health and not orch_health.get("db_connected"):
+            st.caption("Orchestrator up but DB not connected — set DB_SSLMODE=require on Render")
     with s3:
-        ollama_url = OLLAMA_URL
-        try:
-            import requests
-            r = requests.get(f"{ollama_url}/api/tags", timeout=5)
-            st.markdown(status_card("Ollama", r.ok), unsafe_allow_html=True)
-        except Exception:
-            st.markdown(status_card("Ollama", None), unsafe_allow_html=True)
+        ollama_online = fetch_ollama_online(OLLAMA_URL)
+        st.markdown(status_card("Ollama", ollama_online), unsafe_allow_html=True)
     with s4:
         st.markdown(status_card("Dashboard", True), unsafe_allow_html=True)
 
-# ── Clock JS ──
+# ── Clock JS (no full-page auto-refresh — keeps UI snappy) ──
 st.markdown('''<script>
 (function(){var e=document.getElementById('clock');if(!e)return;
 function u(){var n=new Date();e.textContent=n.toTimeString().split(' ')[0]}
 u();setInterval(u,1000)})();
-</script>
-<meta http-equiv="refresh" content="30">
-''', unsafe_allow_html=True)
+</script>''', unsafe_allow_html=True)
 
-# ── Seed demo data on first run ──
+# ── Seed demo data once per worker ──
 def seed_demo():
-    conn = db()
-    if not conn: return
+    conn = get_conn()
+    if not conn:
+        return
     cur = conn.cursor()
     try:
         cur.execute("SELECT count(*) c FROM leads")
@@ -827,9 +868,12 @@ def seed_demo():
             cur.execute("INSERT INTO social_posts(platform,content,reach,published_at) VALUES(%s,%s,%s,now()-interval'1 day'*random())", (p[0], p[1], random.randint(p[2][0], p[2][1])))
 
         conn.commit()
-    except:
+        invalidate_reads()
+    except Exception:
         conn.rollback()
     finally:
-        conn.close()
+        cur.close()
 
-seed_demo()
+if _db_ok and "demo_seeded" not in st.session_state:
+    seed_demo()
+    st.session_state["demo_seeded"] = True

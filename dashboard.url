@@ -1,2 +1,28 @@
-# NIVARA AREIS Dashboard
+# NIVARA AREIS — Dashboard URL (reference only)
+
+The desktop shortcut must NOT point here directly.
+
+## Permanent shortcut (Windows)
+1. Double-click **Install-NIVARA-Desktop-Shortcut.bat** in the repo root.
+2. Shortcut on Desktop opens `%LOCALAPPDATA%\NIVARA\NIVARA-Dashboard.bat`.
+3. URL is stored in `%LOCALAPPDATA%\NIVARA\dashboard.url`.
+
+## If access error appears
+1. Double-click **Fix-NIVARA-Shortcut.bat**
+2. Click **Deploy** in the wizard → deploy on Streamlit Cloud
+3. Set subdomain **nivara-areis** → URL becomes https://nivara-areis.streamlit.app/
+4. Paste URL → **Save & Open**
+
+## Deploy settings (copy exactly)
+| Field | Value |
+|-------|-------|
+| Repository | `narendhrareddi-ship-it/Nivara-AREIS` |
+| Branch | `main` |
+| Main file | `streamlit_app.py` |
+| Custom subdomain | `nivara-areis` |
+
+One-click GitHub link:
+https://github.com/narendhrareddi-ship-it/Nivara-AREIS/blob/main/streamlit_app.py
+
+## Default target URL (after deploy)
 https://nivara-areis.streamlit.app/

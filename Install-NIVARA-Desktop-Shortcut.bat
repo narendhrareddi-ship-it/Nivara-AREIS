@@ -1,19 +1,18 @@
 @echo off
-title NIVARA AREIS - Install Desktop Shortcut
-echo Creating NIVARA AREIS shortcut on your Desktop...
+title NIVARA AREIS - Install Permanent Desktop Shortcut
+echo.
+echo ============================================================
+echo   NIVARA AREIS - Permanent Desktop Shortcut Installer
+echo ============================================================
+echo.
+echo This creates a shortcut that opens a LOCAL launcher.
+echo The launcher reads your saved URL and prompts you only if
+echo Streamlit is down — no more broken shortcuts after redeploy.
+echo.
 
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$url='https://nivara-areis.streamlit.app/'; ^
-   $desk=[Environment]::GetFolderPath('Desktop'); ^
-   $lnk=Join-Path $desk 'NIVARA AREIS.lnk'; ^
-   $s=(New-Object -ComObject WScript.Shell).CreateShortcut($lnk); ^
-   $s.TargetPath=$url; ^
-   $s.IconLocation='imageres.dll,109'; ^
-   $s.Description='NIVARA AREIS - Bangalore Real Estate AI Dashboard'; ^
-   $s.Save(); ^
-   Write-Host 'Shortcut created:' $lnk; ^
-   Start-Process $url"
+set SCRIPT_DIR=%~dp0
+powershell -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%launchers\Install-Launcher.ps1" -SourceDir "%SCRIPT_DIR%launchers"
 
 echo.
-echo Done! Check your Desktop for "NIVARA AREIS"
-timeout /t 5
+echo Done. Your Desktop shortcut "NIVARA AREIS" is ready.
+timeout /t 6

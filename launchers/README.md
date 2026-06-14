@@ -1,36 +1,39 @@
-# NIVARA AREIS — Desktop Launcher
+# NIVARA AREIS Launchers
 
-**Dashboard URL:** https://nivara-areis.streamlit.app/
+## Permanent fix for "You do not have access to this app"
 
-Copy one of these files to your **Desktop** and double-click to open the dashboard (no URL to remember).
+**Do not** point shortcuts directly at `https://nivara-areis.streamlit.app/` — that URL only works after Streamlit Cloud deploy.
 
-## Windows (easiest)
+### Windows (recommended)
 
-### Option A — One-click shortcut (recommended)
-1. Download `Create-Desktop-Shortcut.ps1` from this folder
-2. Right-click → **Run with PowerShell**
-3. A **NIVARA AREIS** icon appears on your Desktop
+1. Run **`Install-NIVARA-Desktop-Shortcut.bat`** (repo root)
+2. Deploy app on [share.streamlit.io](https://share.streamlit.io) with subdomain **`nivara-areis`**
+3. If needed, run **`Fix-NIVARA-Shortcut.bat`** to paste your live URL once
 
-### Option B — Internet shortcut
-1. Copy `NIVARA-AREIS.url` to your Desktop
-2. Double-click it
+Shortcut target: `%LOCALAPPDATA%\NIVARA\NIVARA-Dashboard.bat` (local launcher)
 
-### Option C — Batch file
-1. Copy `Open-NIVARA-Dashboard.bat` to your Desktop
-2. Double-click it
+Saved URL: `%LOCALAPPDATA%\NIVARA\dashboard.url`
 
-## Mac
-1. Copy `Open-NIVARA-Dashboard.command` to your Desktop
-2. Right-click → **Open** (first time only — approve security prompt)
-3. Or drag the URL into Safari bookmarks bar
+Full guide: [docs/PERMANENT_SHORTCUT_FIX.md](../docs/PERMANENT_SHORTCUT_FIX.md)
 
-## Linux
-1. Copy `NIVARA-AREIS.desktop` to `~/Desktop/`
-2. Right-click → **Allow Launching**
-3. Double-click the icon
+### Deploy settings
 
-## Pin to taskbar (Windows)
-After creating the shortcut, right-click **NIVARA AREIS** on Desktop → **Pin to taskbar**
+| Field | Value |
+|-------|-------|
+| Repository | `narendhrareddi-ship-it/Nivara-AREIS` |
+| Branch | `main` |
+| Main file | `streamlit_app.py` |
+| Subdomain | `nivara-areis` |
 
-## Bookmark (any browser)
-Press `Ctrl+D` (Windows) or `Cmd+D` (Mac) while on the dashboard page.
+### Linux / Mac
+
+- Linux: `Install-NIVARA-Desktop-Shortcut.sh`
+- Mac: `launchers/Open-NIVARA-Dashboard.command` (opens URL — run Install on Windows for launcher model)
+
+### Files
+
+| File | Purpose |
+|------|---------|
+| `Open-Dashboard.ps1` | Validates URL, wizard if dead, opens browser |
+| `Install-Launcher.ps1` | Copies launcher to `%LOCALAPPDATA%\NIVARA\` |
+| `Open-NIVARA-Dashboard.bat` | Fallback if launcher installed |

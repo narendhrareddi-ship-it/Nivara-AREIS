@@ -1,5 +1,11 @@
 # Streamlit Community Cloud — one-click deploy link
 #
+# IMPORTANT: After deploy, set custom subdomain to: nivara-areis
+# Stable URL: https://nivara-areis.streamlit.app/
+#
+# Windows shortcut: run Install-NIVARA-Desktop-Shortcut.bat (local launcher — never breaks)
+# Guide: docs/PERMANENT_SHORTCUT_FIX.md
+#
 # In https://share.streamlit.io → New app → Paste GitHub URL:
 https://github.com/narendhrareddi-ship-it/Nivara-AREIS/blob/main/streamlit_app.py
 #

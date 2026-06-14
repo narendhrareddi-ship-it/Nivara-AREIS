@@ -2,37 +2,21 @@
 title NIVARA AREIS - Fix Desktop Shortcut
 echo.
 echo ============================================================
-echo   NIVARA AREIS - Update Desktop Shortcut
+echo   NIVARA AREIS - Fix Desktop Shortcut (permanent)
 echo ============================================================
 echo.
-echo Updating shortcut to: https://nivara-areis.streamlit.app/
+echo Reinstalling the local launcher shortcut and URL wizard...
 echo.
-set APPURL=https://nivara-areis.streamlit.app/
 
-if "%APPURL%"=="" (
-    echo No URL entered. Opening Streamlit Cloud to deploy...
-    start "" "https://share.streamlit.io"
-    echo Deploy the app first, then run this script again.
-    pause
-    exit /b 1
-)
+set SCRIPT_DIR=%~dp0
+powershell -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%launchers\Install-Launcher.ps1" -SourceDir "%SCRIPT_DIR%launchers"
+powershell -NoProfile -ExecutionPolicy Bypass -File "%SCRIPT_DIR%launchers\Open-Dashboard.ps1" -ForceWizard
 
 echo.
-echo Creating shortcut for: %APPURL%
-
-powershell -NoProfile -ExecutionPolicy Bypass -Command ^
-  "$u='%APPURL%'; ^
-   if (-not $u.EndsWith('/')) { $u += '/' }; ^
-   $d=[Environment]::GetFolderPath('Desktop'); ^
-   $lnk=Join-Path $d 'NIVARA AREIS.lnk'; ^
-   $s=(New-Object -ComObject WScript.Shell).CreateShortcut($lnk); ^
-   $s.TargetPath=$u; ^
-   $s.IconLocation='imageres.dll,109'; ^
-   $s.Description='NIVARA AREIS - Bangalore Real Estate AI Dashboard'; ^
-   $s.Save(); ^
-   Write-Host 'Shortcut updated:' $lnk; ^
-   Start-Process $u"
-
+echo If the dashboard did not open, deploy on Streamlit Cloud first:
+echo   1. https://share.streamlit.io  (GitHub: narendhrareddi-ship-it)
+echo   2. Create app from narendhrareddi-ship-it/Nivara-AREIS
+echo   3. Branch main, file streamlit_app.py
+echo   4. Custom subdomain: nivara-areis
 echo.
-echo Done! Opening dashboard...
-timeout /t 4
+timeout /t 8
