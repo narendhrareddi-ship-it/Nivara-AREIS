@@ -6,11 +6,15 @@
 
 ### Windows (recommended)
 
-1. Run **`Install-NIVARA-Desktop-Shortcut.bat`** (repo root)
-2. Deploy app on [share.streamlit.io](https://share.streamlit.io) with subdomain **`nivara-areis`**
-3. If needed, run **`Fix-NIVARA-Shortcut.bat`** to paste your live URL once
+**Double-click either file in the repo root:**
 
-Shortcut target: `%LOCALAPPDATA%\NIVARA\NIVARA-Dashboard.bat` (local launcher)
+- **`CREATE-DESKTOP-SHORTCUT.bat`** ← easiest
+- **`Install-NIVARA-Desktop-Shortcut.bat`**
+
+Creates:
+- Desktop icon **NIVARA AREIS** (custom `nivara.ico` building logo)
+- Start Menu entry
+- Local launcher at `%LOCALAPPDATA%\NIVARA\`
 
 Saved URL: `%LOCALAPPDATA%\NIVARA\dashboard.url`
 
