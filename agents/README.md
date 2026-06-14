@@ -30,8 +30,7 @@ cp .env.example .env     # Add Supabase keys
 ## Run Orchestrator
 
 ```bash
-# Ensure Ollama is running (docker compose up ollama)
-ollama pull llama3.2
+# Ensure GEMINI_API_KEY is set (get one at https://aistudio.google.com/apikey)
 
 # Start API server
 nivara-orchestrator

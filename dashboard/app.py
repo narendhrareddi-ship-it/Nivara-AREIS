@@ -8,7 +8,7 @@ import random
 from theme import CSS, LOGO_SVG, CHART_COLORS, RED, RED_DARK, NAVY, SLATE, plotly_layout, stat_card, market_chip, post_card
 from config import (
     DB_HOST, DB_PORT, DB_NAME, DB_USER, DB_PASSWORD,
-    ORCH_URL, VEO_URL, OLLAMA_URL, DEFAULT_REGION,
+    ORCH_URL, VEO_URL, DEFAULT_REGION,
     connection_config,
     ENABLE_DASHBOARD_SIMULATION, orchestrator_headers,
     AUTO_SYNC_PIPELINE, AUTO_SYNC_ON_LOAD, AUTO_SYNC_INTERVAL_MINUTES,
@@ -27,7 +27,6 @@ from fast_db import (
     load_performance_stats,
     pipeline_cycle_status,
     fetch_orchestrator_health,
-    fetch_ollama_online,
     invalidate_reads,
 )
 from safe_data import val as _val, text as _text, fmt_dt as _fmt_dt, trunc as _trunc
@@ -819,7 +818,6 @@ with t7:
         )
 
     orch_health = fetch_orchestrator_health(ORCH_URL)
-    ollama_online = fetch_ollama_online(OLLAMA_URL) if OLLAMA_URL else None
 
     with s1:
         st.markdown(status_card("PostgreSQL", _db_ok), unsafe_allow_html=True)
@@ -832,12 +830,7 @@ with t7:
         llm_ok = orch_health.get("llm_available") if orch_health else None
         provider = (orch_health.get("llm_provider") or "").strip().capitalize()
         if llm_ok:
-            subtitle = provider or "Cloud"
-            if ollama_online:
-                subtitle = "Ollama" if provider == "Ollama" else f"{subtitle} · Ollama ready"
-            st.markdown(status_card("LLM", True, subtitle), unsafe_allow_html=True)
-            if OLLAMA_URL and ollama_online is False and provider and provider != "Ollama":
-                st.caption(f"Using {provider} — local Ollama at {OLLAMA_URL} is offline")
+            st.markdown(status_card("LLM", True, provider or "Cloud"), unsafe_allow_html=True)
         elif llm_ok is False:
             st.markdown(status_card("LLM", False, "No API keys"), unsafe_allow_html=True)
         else:

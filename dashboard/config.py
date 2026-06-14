@@ -48,7 +48,6 @@ def _from_secrets_nested(key: str) -> str | None:
         "ORCHESTRATOR_URL": [("orchestrator", "url"), ("services", "orchestrator_url")],
         "ORCHESTRATOR_API_KEY": [("orchestrator", "api_key"), ("services", "orchestrator_api_key")],
         "VEO_MCP_URL": [("services", "veo_mcp_url"), ("veo", "url")],
-        "OLLAMA_BASE_URL": [("ollama", "url"), ("services", "ollama_url")],
         "ENABLE_DASHBOARD_SIMULATION": [("dashboard", "simulate"), ("features", "simulate_activity")],
         "AUTO_SYNC_PIPELINE": [("dashboard", "auto_sync"), ("features", "auto_sync_pipeline")],
         "AUTO_SYNC_ON_LOAD": [("dashboard", "auto_sync_on_load"), ("features", "auto_sync_on_load")],
@@ -120,14 +119,6 @@ elif not DB_USER:
 DB_PASSWORD = _get("DB_PASSWORD", "changeme")
 ORCH_URL = _get("ORCHESTRATOR_URL", "http://localhost:8000")
 VEO_URL = _get("VEO_MCP_URL", "http://localhost:8006")
-_raw_ollama = _get("OLLAMA_BASE_URL", "")
-if _raw_ollama:
-    OLLAMA_URL = _raw_ollama
-elif "localhost" in ORCH_URL or "127.0.0.1" in ORCH_URL:
-    OLLAMA_URL = "http://localhost:11434"
-else:
-    # Production (e.g. Render): no local Ollama — cloud LLM via orchestrator
-    OLLAMA_URL = ""
 ORCHESTRATOR_API_KEY = _get("ORCHESTRATOR_API_KEY", "")
 
 _sim_flag = _get("ENABLE_DASHBOARD_SIMULATION", "false").strip().lower()

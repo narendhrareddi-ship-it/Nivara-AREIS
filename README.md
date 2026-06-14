@@ -11,7 +11,6 @@ cp .env.example .env
 
 # 2. Start infrastructure
 docker compose up -d
-docker exec -it nivara-ollama ollama pull llama3.2
 
 # 3. Run Supabase migration (SQL Editor)
 # → supabase/migrations/001_initial_schema.sql
@@ -51,7 +50,7 @@ Details: **[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md)** · Phase 5: **[docs/PH
 ## Project Structure
 
 ```
-├── docker-compose.yml          # n8n + ollama
+├── docker-compose.yml          # n8n + postgres + dashboard
 ├── supabase/migrations/        # PostgreSQL schema
 ├── n8n/workflows/              # Importable workflow JSON
 ├── agents/                     # LangGraph + FastAPI orchestrator
