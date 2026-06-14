@@ -1,2 +1,7 @@
-# Render dashboard — lightweight (no in-process agents; uses HTTP orchestrator)
--r dashboard/requirements.txt
+# Render dashboard — lightweight (no in-process agents)
+streamlit>=1.28.0
+psycopg2-binary>=2.9.0
+pandas>=2.0.0
+requests>=2.31.0
+plotly>=5.18.0
+python-dotenv>=1.0.0
