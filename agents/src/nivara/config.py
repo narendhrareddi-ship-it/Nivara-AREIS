@@ -17,8 +17,6 @@ class Settings(BaseSettings):
     db_password: str = "changeme"
     db_name: str = "nivara"
     db_sslmode: str = "require"
-    ollama_base_url: str = "http://localhost:11434"
-    ollama_model: str = "llama3.2"
     llm_provider: str = "auto"
     groq_api_key: str = ""
     groq_model: str = "llama-3.3-70b-versatile"

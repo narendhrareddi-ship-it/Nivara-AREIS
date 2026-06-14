@@ -21,8 +21,6 @@ envVarGroups:
         sync: false
       - key: OPENROUTER_API_KEY
         sync: false
-      - key: OLLAMA_BASE_URL
-        sync: false
 
   - name: nivara-db
     envVars:
@@ -79,8 +77,6 @@ services:
       - name: nivara-secrets
       - name: nivara-db
     envVars:
-      - key: OLLAMA_MODEL
-        value: llama3.2
       - key: LLM_PROVIDER
         value: auto
       - key: GROQ_MODEL

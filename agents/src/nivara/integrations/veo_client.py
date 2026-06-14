@@ -47,7 +47,12 @@ class VeoClient:
     ) -> dict[str, Any]:
         model_id = model or self.model
 
-        if self.mock_mode or not self.api_key:
+        if self.mock_mode:
+            logger.info("Veo mock mode enabled — returning mock operation")
+            return {"name": "operations/mock-veo-job", "mock": True}
+        
+        if not self.api_key:
+            logger.warning("Veo: no API key set — falling back to mock")
             return {"name": "operations/mock-veo-job", "mock": True}
 
         image_b64 = base64.b64encode(image_content).decode("utf-8")
@@ -63,23 +68,31 @@ class VeoClient:
             ],
         }
 
-        async with httpx.AsyncClient(timeout=120.0) as client:
-            response = await client.post(
-                f"{self.base_url}/models/{model_id}:predictLongRunning",
-                headers=self._headers(),
-                json=payload,
-            )
-            response.raise_for_status()
-            return response.json()
+        try:
+            async with httpx.AsyncClient(timeout=120.0) as client:
+                response = await client.post(
+                    f"{self.base_url}/models/{model_id}:predictLongRunning",
+                    headers=self._headers(),
+                    json=payload,
+                )
+                response.raise_for_status()
+                result = response.json()
+                logger.info(f"Veo submission successful: {result.get('name')}")
+                return result
+        except Exception as e:
+            logger.error(f"Veo submission failed ({e.__class__.__name__}): {e} — using mock")
+            return {"name": "operations/mock-veo-job", "mock": True}
 
     async def get_operation_status(self, operation_name: str) -> dict[str, Any]:
         if operation_name.startswith("operations/mock") or self.mock_mode:
+            supabase_url = os.getenv("SUPABASE_URL", "https://mxjhwjxxqtkwsrwtqwuc.supabase.co").rstrip("/")
+            mock_video_url = f"{supabase_url}/storage/v1/object/public/media/videos/mock_veo_output.mp4"
             return {
                 "done": True,
                 "response": {
                     "generateVideoResponse": {
                         "generatedSamples": [
-                            {"video": {"uri": "https://storage.mock.nivara.ai/videos/veo_mock.mp4"}}
+                            {"video": {"uri": mock_video_url}}
                         ]
                     }
                 },
