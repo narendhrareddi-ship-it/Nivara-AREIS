@@ -45,6 +45,8 @@ PRs #2 (Phase 3 hosting) and #3 (Bangalore + Phase 4) merge into `main`. Streaml
 | `SUPABASE_SERVICE_ROLE_KEY` | service role key |
 | `GEMINI_API_KEY` | your Gemini API key (Veo + LLM fallback) |
 | `GROQ_API_KEY` | Groq API key (recommended backup if Gemini quota runs out) |
+| `OPENROUTER_API_KEY` | optional third LLM fallback |
+| `LLM_PROVIDER` | `auto` (default — Gemini → Groq → OpenRouter) |
 | `ORCHESTRATOR_API_KEY` | optional API key for `/orchestrate` |
 | `MEDIA_PUBLIC_BASE_URL` | `https://nivara-veo-mcp.onrender.com/media` |
 
