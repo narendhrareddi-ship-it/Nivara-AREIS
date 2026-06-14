@@ -120,7 +120,14 @@ elif not DB_USER:
 DB_PASSWORD = _get("DB_PASSWORD", "changeme")
 ORCH_URL = _get("ORCHESTRATOR_URL", "http://localhost:8000")
 VEO_URL = _get("VEO_MCP_URL", "http://localhost:8006")
-OLLAMA_URL = _get("OLLAMA_BASE_URL", "http://localhost:11434")
+_raw_ollama = _get("OLLAMA_BASE_URL", "")
+if _raw_ollama:
+    OLLAMA_URL = _raw_ollama
+elif "localhost" in ORCH_URL or "127.0.0.1" in ORCH_URL:
+    OLLAMA_URL = "http://localhost:11434"
+else:
+    # Production (e.g. Render): no local Ollama — cloud LLM via orchestrator
+    OLLAMA_URL = ""
 ORCHESTRATOR_API_KEY = _get("ORCHESTRATOR_API_KEY", "")
 
 _sim_flag = _get("ENABLE_DASHBOARD_SIMULATION", "false").strip().lower()

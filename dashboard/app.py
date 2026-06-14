@@ -799,30 +799,49 @@ with t7:
     st.markdown('<div class="section-title">System Status</div>', unsafe_allow_html=True)
     s1, s2, s3, s4 = st.columns(4)
 
-    def status_card(name: str, online: bool | None) -> str:
+    def status_card(name: str, online: bool | None, subtitle: str = "") -> str:
         if online is True:
             pill, label = "status-online", "● Online"
         elif online is False:
             pill, label = "status-offline", "● Offline"
         else:
             pill, label = "status-warn", "● Unreachable"
+        sub = (
+            f'<div style="font-size:0.75rem;color:#888;margin-top:0.25rem">{subtitle}</div>'
+            if subtitle
+            else ""
+        )
         return (
             f'<div class="card" style="text-align:center">'
             f'<div class="stat-label">{name}</div>'
-            f'<div class="status-pill {pill}" style="margin-top:0.5rem">{label}</div></div>'
+            f'<div class="status-pill {pill}" style="margin-top:0.5rem">{label}</div>'
+            f"{sub}</div>"
         )
+
+    orch_health = fetch_orchestrator_health(ORCH_URL)
+    ollama_online = fetch_ollama_online(OLLAMA_URL) if OLLAMA_URL else None
 
     with s1:
         st.markdown(status_card("PostgreSQL", _db_ok), unsafe_allow_html=True)
     with s2:
-        orch_health = fetch_orchestrator_health(ORCH_URL)
         online = bool(orch_health) and orch_health.get("db_connected", False)
         st.markdown(status_card("Orchestrator", online if orch_health else None), unsafe_allow_html=True)
         if orch_health and not orch_health.get("db_connected"):
             st.caption("Orchestrator up but DB not connected — set DB_SSLMODE=require on Render")
     with s3:
-        ollama_online = fetch_ollama_online(OLLAMA_URL)
-        st.markdown(status_card("Ollama", ollama_online), unsafe_allow_html=True)
+        llm_ok = orch_health.get("llm_available") if orch_health else None
+        provider = (orch_health.get("llm_provider") or "").strip().capitalize()
+        if llm_ok:
+            subtitle = provider or "Cloud"
+            if ollama_online:
+                subtitle = "Ollama" if provider == "Ollama" else f"{subtitle} · Ollama ready"
+            st.markdown(status_card("LLM", True, subtitle), unsafe_allow_html=True)
+            if OLLAMA_URL and ollama_online is False and provider and provider != "Ollama":
+                st.caption(f"Using {provider} — local Ollama at {OLLAMA_URL} is offline")
+        elif llm_ok is False:
+            st.markdown(status_card("LLM", False, "No API keys"), unsafe_allow_html=True)
+        else:
+            st.markdown(status_card("LLM", None), unsafe_allow_html=True)
     with s4:
         st.markdown(status_card("Dashboard", True), unsafe_allow_html=True)
 
