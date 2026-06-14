@@ -167,13 +167,3 @@ def fetch_orchestrator_health(orch_url: str) -> dict[str, Any]:
         pass
     return {}
 
-
-@st.cache_data(ttl=45, show_spinner=False)
-def fetch_ollama_online(ollama_url: str) -> bool | None:
-    try:
-        import requests
-
-        response = requests.get(f"{ollama_url.rstrip('/')}/api/tags", timeout=3)
-        return response.ok
-    except Exception:
-        return None

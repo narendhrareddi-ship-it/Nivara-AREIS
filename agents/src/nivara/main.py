@@ -65,7 +65,6 @@ async def health() -> dict[str, Any]:
         "status": "ok",
         "llm_available": llm_ok,
         "llm_provider": provider,
-        "ollama": provider == "ollama",
         "api_auth_enabled": bool(settings.orchestrator_api_key.strip()),
         "supabase_configured": orchestrator.crm.is_configured(),
         "db_connected": db_connected,

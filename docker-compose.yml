@@ -25,27 +25,6 @@ services:
       - ./n8n/workflows:/home/node/workflows:ro
     networks:
       - nivara-net
-    depends_on:
-      - ollama
-
-  ollama:
-    image: ollama/ollama:latest
-    container_name: nivara-ollama
-    restart: unless-stopped
-    ports:
-      - "11434:11434"
-    volumes:
-      - ollama_data:/root/.ollama
-    networks:
-      - nivara-net
-    # Uncomment for GPU support (NVIDIA):
-    # deploy:
-    #   resources:
-    #     reservations:
-    #       devices:
-    #         - driver: nvidia
-    #           count: 1
-    #           capabilities: [gpu]
 
   postgres:
     image: postgres:16-alpine
@@ -113,7 +92,6 @@ services:
 
 volumes:
   n8n_data:
-  ollama_data:
   postgres_data:
   media_storage:
 

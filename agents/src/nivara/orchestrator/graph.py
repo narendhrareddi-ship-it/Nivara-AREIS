@@ -31,7 +31,7 @@ from nivara.agents import (
 )
 from nivara.agents.base import AgentState
 from nivara.db.supabase_client import SupabaseCRM
-from nivara.llm.ollama_client import OllamaClient
+from nivara.llm.llm_client import LLMClient
 from nivara.regions import DEFAULT_REGION
 
 logger = logging.getLogger(__name__)
@@ -86,10 +86,10 @@ PIPELINE_ORDER: list[str] = [
 class AgentOrchestrator:
     def __init__(
         self,
-        llm: OllamaClient | None = None,
+        llm: LLMClient | None = None,
         crm: SupabaseCRM | None = None,
     ) -> None:
-        self.llm = llm or OllamaClient()
+        self.llm = llm or LLMClient()
         self.crm = crm or SupabaseCRM()
         self._agents: dict[str, Any] = {
             "MarketAnalyst": MarketAnalystAgent(self.llm, self.crm),
