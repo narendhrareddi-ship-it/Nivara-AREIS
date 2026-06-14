@@ -7,6 +7,7 @@ param(
 $ErrorActionPreference = "Stop"
 $ConfigFile = Join-Path $ConfigDir "dashboard.url"
 $DefaultSubdomain = "nivara-areis"
+$PrimaryUrl = "https://nivara-dashboard.onrender.com/"
 $DeployRepo = "narendhrareddi-ship-it/Nivara-AREIS"
 $DeployBranch = "main"
 $DeployEntry = "streamlit_app.py"
@@ -63,15 +64,16 @@ The saved dashboard URL is missing or not reachable.
 
 1) Click DEPLOY to open Streamlit Cloud (sign in as narendhrareddi-ship-it).
 2) Deploy repo $DeployRepo, branch $DeployBranch, file $DeployEntry.
-3) Set custom subdomain: $DefaultSubdomain  ->  https://$DefaultSubdomain.streamlit.app/
-4) After deploy succeeds, paste your live URL below and click SAVE.
+3) Render dashboard (auto-deployed): $PrimaryUrl
+4) Or Streamlit subdomain: $DefaultSubdomain  ->  https://$DefaultSubdomain.streamlit.app/
+5) After deploy succeeds, paste your live URL below and click SAVE.
 "@
     $form.Controls.Add($label)
 
     $text = New-Object System.Windows.Forms.TextBox
     $text.Location = New-Object System.Drawing.Point(15, 175)
     $text.Size = New-Object System.Drawing.Size(570, 24)
-    $text.Text = "https://$DefaultSubdomain.streamlit.app/"
+    $text.Text = $PrimaryUrl
     $form.Controls.Add($text)
 
     $deployBtn = New-Object System.Windows.Forms.Button

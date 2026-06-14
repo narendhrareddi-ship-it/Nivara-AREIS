@@ -19,3 +19,4 @@ ollama_data/
 *.log
 dashboard/.streamlit/secrets.toml
 .dashboard-public-url.log
+generated/
